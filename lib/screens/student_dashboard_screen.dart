@@ -14,49 +14,80 @@ class StudentDashboardScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/login'),
         ),
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              const Icon(Icons.school, size: 80, color: Colors.indigo),
-              const SizedBox(height: 24),
-              Text(
-                '¡Bienvenido, Estudiante!',
-                style: Theme.of(context).textTheme.headlineSmall,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              Card(
-                elevation: 4,
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      Text(
-                        'Estado de tu Beca Alimenticia',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 12),
-                      const Chip(
-                        label: Text('PENDIENTE'),
-                        backgroundColor: Colors.orangeAccent,
-                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Tu solicitud está siendo revisada por el Comité de Becas.',
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Cerrar Sesión',
+            onPressed: () {
+              // TODO: Implementar funcionalidad de cerrar sesión
+              context.go('/login');
+            },
           ),
+        ],
+      ),
+      body: GridView.count(
+        crossAxisCount: 2,
+        padding: const EdgeInsets.all(24.0),
+        crossAxisSpacing: 16.0,
+        mainAxisSpacing: 16.0,
+        children: <Widget>[
+          _buildDashboardCard(
+            context,
+            icon: Icons.person_outline,
+            title: 'Mi Perfil',
+            onTap: () => context.go('/student-dashboard/profile'),
+          ),
+          _buildDashboardCard(
+            context,
+            icon: Icons.article_outlined,
+            title: 'Convocatorias',
+            onTap: () => context.go('/student-dashboard/scholarship-calls'),
+          ),
+          _buildDashboardCard(
+            context,
+            icon: Icons.playlist_add_check_outlined,
+            title: 'Estatus de Solicitud',
+            onTap: () => context.go('/student-dashboard/application-status'),
+          ),
+          _buildDashboardCard(
+            context,
+            icon: Icons.upload_file_outlined,
+            title: 'Subir Documentos',
+            onTap: () => context.go('/student-dashboard/upload-documents'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDashboardCard(BuildContext context,
+      {required IconData icon, required String title, required VoidCallback onTap}) {
+    return Card(
+      elevation: 4.0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Icon(icon, size: 50, color: Theme.of(context).primaryColorDark),
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Text(
+                title,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+              ),
+            ),
+          ],
         ),
       ),
     );

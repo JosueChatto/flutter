@@ -21,13 +21,13 @@ class _LoginScreenState extends State<LoginScreen> {
       // Por ahora, navegamos según el rol seleccionado
       switch (_selectedRole) {
         case 'Estudiante':
-          context.go('/student');
+          context.go('/student-dashboard');
           break;
         case 'Administrador':
-          context.go('/admin');
+          context.go('/admin-dashboard');
           break;
         case 'Cafetería':
-          context.go('/cafeteria');
+          context.go('/cafeteria-dashboard');
           break;
       }
     }
@@ -83,7 +83,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 20),
                   DropdownButtonFormField<String>(
-                    value: _selectedRole,
+                    initialValue: _selectedRole,
                     decoration: const InputDecoration(
                       labelText: 'Selecciona tu Rol',
                       prefixIcon: Icon(Icons.person_outline),

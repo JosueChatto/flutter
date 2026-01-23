@@ -1,74 +1,66 @@
 
-# Blueprint: AMOBECAL - Monitoreo de Becas Alimenticias
+# Blueprint de la Aplicación de Gestión de Becas AMOBECAL
 
-## Visión General
+## Descripción General
 
-AMOBECAL es una aplicación Flutter diseñada para gestionar y monitorear un programa de becas alimenticias. La aplicación proporciona diferentes interfaces y funcionalidades adaptadas a los roles de los usuarios: estudiantes beneficiarios, administradores del programa y personal de la cafetería.
+AMOBECAL es una aplicación móvil integral diseñada para simplificar y automatizar el proceso de solicitud, gestión y seguimiento de becas universitarias. La plataforma está dirigida a tres perfiles de usuario clave: estudiantes, administradores y personal de cafetería, cada uno con funcionalidades específicas para sus roles.
 
-El objetivo es centralizar la comunicación, agilizar los procesos de solicitud y validación, y facilitar el seguimiento del estado de las becas y el consumo de alimentos.
-
----
-
-## Diseño y Estilo
-
-La aplicación sigue los principios de Material Design 3, buscando una estética moderna, limpia y funcional.
-
-*   **Paleta de Colores:**
-    *   **Primario:** `Colors.indigo` se usa como color semilla para generar un esquema de colores armonioso tanto en modo claro como oscuro.
-    *   **Énfasis y Botones:** Los tonos derivados del índigo se utilizan para botones, enlaces y elementos interactivos para mantener la consistencia.
-
-*   **Tipografía (Google Fonts):
-    *   **Títulos Principales (`displayLarge`):** `Montserrat` en negrita para un impacto visual fuerte y moderno en los encabezados más importantes (ej. "AMOBECAL").
-    *   **Títulos de AppBar y Encabezados (`headlineMedium`):** `Montserrat` con un peso seminegrita para una jerarquía clara.
-    *   **Cuerpo de Texto (`bodyMedium`):** `Open Sans` para una excelente legibilidad en párrafos y descripciones.
-    *   **Botones y Etiquetas (`labelLarge`):** `Roboto` para una apariencia limpia y estándar en elementos de acción.
-
-*   **Estilo de Componentes:
-    *   **Campos de Texto:** `InputDecorationTheme` con bordes redondeados (`OutlineInputBorder`) para un look moderno.
-    *   **Botones Elevados:** `ElevatedButtonThemeData` con esquinas redondeadas y un relleno generoso para una apariencia amigable y fácil de usar.
-    *   **Tema Oscuro:** Soporte completo para modo oscuro con colores y fondos adaptados para reducir la fatiga visual.
+La aplicación ofrece una experiencia de usuario fluida y moderna, con un diseño intuitivo basado en Material Design 3, modo oscuro, y una navegación clara y predecible gracias a `go_router`.
 
 ---
 
-## Características Implementadas
+## Funcionalidades Implementadas
 
-### 1. **Estructura del Proyecto y Navegación**
-*   **Gestión de Paquetes:** Se utiliza `flutter pub add` para gestionar las dependencias: `go_router`, `provider` y `google_fonts`.
-*   **Navegación Declarativa:** Se implementa `go_router` para gestionar las rutas de la aplicación de una manera robusta y escalable.
-*   **Rutas Definidas:**
-    *   `/login`: Pantalla de inicio de sesión.
-    *   `/student`: Dashboard del estudiante.
-    *   `/admin`: Dashboard del administrador.
-    *   `/cafeteria`: Dashboard de la cafetería.
+### Perfil de Estudiante
 
-### 2. **Gestión de Tema (Claro/Oscuro)**
-*   **Proveedor de Tema:** Se utiliza el paquete `provider` con un `ChangeNotifier` (`ThemeProvider`) para permitir al usuario cambiar entre el modo claro, oscuro y el del sistema en tiempo real.
-*   **Ícono de Cambio de Tema:** Un `IconButton` en la pantalla de inicio de sesión permite al usuario alternar el tema.
+- **Autenticación:** Pantalla de inicio de sesión para acceder al perfil correspondiente.
+- **Panel de Control (Dashboard):**
+  - **Mi Perfil:** Visualización y edición de la información personal del estudiante.
+  - **Ver Convocatorias:** Lista de becas disponibles con detalles y requisitos.
+  - **Subir Documentos:** Interfaz para cargar los documentos necesarios para la solicitud.
+  - **Estado de la Solicitud:** Seguimiento en tiempo real del estado de la postulación (enviada, en revisión, aprobada, rechazada).
 
-### 3. **Pantalla de Inicio de Sesión (`/login`)**
-*   **Campos de Entrada:** Formularios para correo electrónico y contraseña.
-*   **Selección de Rol:** Un `DropdownButtonFormField` permite al usuario seleccionar su rol (Estudiante, Administrador, Cafetería) antes de iniciar sesión.
-*   **Lógica de Autenticación (Simulada):** Al presionar "Ingresar", la aplicación utiliza `go_router` para redirigir al usuario al dashboard correspondiente a su rol seleccionado.
-*   **Gestión de Estado Local:** Se usa `ValueNotifier` y `ValueListenableBuilder` para manejar eficientemente el estado del rol seleccionado en la UI.
+### Perfil de Administrador
 
-### 4. **Dashboards de Usuario**
-Se han creado pantallas base para cada rol, todas con una barra de aplicación (`AppBar`) y un botón para cerrar sesión que redirige de nuevo a `/login`.
+- **Panel de Control (Dashboard):**
+  - **Ver Solicitudes:** Lista de todos los estudiantes que han aplicado a una beca.
+    - **Detalle del Solicitante:** Vista detallada de la información y documentos del estudiante, con opciones para **aprobar** o **rechazar** la solicitud.
+  - **Crear Nueva Convocatoria:** Formulario para publicar nuevas ofertas de becas, especificando nombre, descripción, requisitos y fechas.
+  - **Historial de Becas Otorgadas:** Registro de todas las becas concedidas, incluyendo detalles del estudiante y la fecha.
 
-*   **Portal del Estudiante (`/student`):**
-    *   Muestra un mensaje de bienvenida y un estado de ejemplo de la beca.
-*   **Panel de Administración (`/admin`):**
-    *   Muestra un mensaje de bienvenida y un botón de ejemplo para "Ver Solicitudes".
-*   **Gestión de Comidas (`/cafeteria`):**
-    *   Muestra un título de "Reporte de Becas" y un texto de ejemplo.
+### Perfil de Cafetería
+
+- **Panel de Control (Dashboard):**
+  - **Canjear Vale de Comida:** Funcionalidad para escanear (simulado) el código QR de un estudiante y validar su vale de comida.
 
 ---
 
-## Plan Actual (Próximos Pasos)
+## Arquitectura y Diseño
 
-El siguiente paso es ejecutar la aplicación para verificar visualmente todas las funcionalidades implementadas hasta ahora.
+- **Gestión de Estado:** Se utiliza `provider` para el manejo del tema (claro/oscuro), garantizando una actualización reactiva de la interfaz.
+- **Enrutamiento:** La navegación se gestiona con `go_router`, permitiendo rutas anidadas y una estructura de navegación organizada.
+- **Diseño de Interfaz:**
+  - **Tema:** Paleta de colores basada en `Colors.indigo`, con una tipografía moderna y legible utilizando `google_fonts` (principalmente 'Montserrat' y 'Roboto').
+  - **Componentes:** Uso de widgets de Material 3 como `Card`, `ListTile`, `ElevatedButton` y `TextField` con un estilo consistente y moderno.
+  - **Experiencia de Usuario:** Interfaces limpias, con buena distribución de espacios y una jerarquía visual clara para facilitar la interacción.
 
-1.  **Ejecutar la Aplicación:** Lanzar la aplicación en el emulador.
-2.  **Verificar la Pantalla de Login:** Confirmar que la pantalla de inicio de sesión se muestra correctamente con el selector de rol.
-3.  **Probar la Navegación:** Iniciar sesión con cada uno de los tres roles y verificar que se redirige al dashboard correcto.
-4.  **Probar el Cambio de Tema:** Asegurarse de que el botón para cambiar el tema funciona correctamente en la pantalla de login.
+---
 
+## Plan de Desarrollo Futuro
+
+1.  **Integración con Backend (Firebase/Supabase):**
+    -   Conectar la aplicación a una base de datos para gestionar usuarios, convocatorias, solicitudes y documentos de forma persistente.
+    -   Implementar un sistema de autenticación real.
+    -   Utilizar servicios de almacenamiento para los documentos de los estudiantes.
+
+2.  **Funcionalidad de Notificaciones:**
+    -   Añadir notificaciones push para informar a los estudiantes sobre cambios en el estado de su solicitud o nuevas convocatorias.
+
+3.  **Escaneo de QR Real:**
+    -   Integrar un paquete como `qr_code_scanner` para implementar la funcionalidad de escaneo de códigos QR en el perfil de cafetería.
+
+4.  **Internacionalización (i18n):**
+    -   Preparar la aplicación para soportar múltiples idiomas.
+
+5.  **Pruebas Unitarias y de Integración:**
+    -   Desarrollar un conjunto de pruebas para garantizar la estabilidad y fiabilidad del código.

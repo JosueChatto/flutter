@@ -8,6 +8,15 @@ import 'screens/login_screen.dart';
 import 'screens/student_dashboard_screen.dart';
 import 'screens/admin_dashboard_screen.dart';
 import 'screens/cafeteria_dashboard_screen.dart';
+import 'screens/student_profile_screen.dart';
+import 'screens/scholarship_calls_screen.dart';
+import 'screens/upload_documents_screen.dart';
+import 'screens/application_status_screen.dart';
+import 'screens/scholarship_applicants_screen.dart';
+import 'screens/applicant_details_screen.dart';
+import 'screens/create_scholarship_call_screen.dart';
+import 'screens/scholarship_history_screen.dart';
+import 'screens/redeem_voucher_screen.dart';
 
 void main() {
   runApp(
@@ -41,22 +50,83 @@ final GoRouter _router = GoRouter(
       },
     ),
     GoRoute(
-      path: '/student',
+      path: '/student-dashboard',
       builder: (BuildContext context, GoRouterState state) {
         return const StudentDashboardScreen();
       },
+      routes: <RouteBase>[
+        GoRoute(
+          path: 'profile',
+          builder: (BuildContext context, GoRouterState state) {
+            return const StudentProfileScreen();
+          },
+        ),
+        GoRoute(
+          path: 'scholarship-calls',
+          builder: (BuildContext context, GoRouterState state) {
+            return const ScholarshipCallsScreen();
+          },
+        ),
+        GoRoute(
+          path: 'upload-documents',
+          builder: (BuildContext context, GoRouterState state) {
+            return const UploadDocumentsScreen();
+          },
+        ),
+        GoRoute(
+          path: 'application-status',
+          builder: (BuildContext context, GoRouterState state) {
+            return const ApplicationStatusScreen();
+          },
+        ),
+      ],
     ),
     GoRoute(
-      path: '/admin',
-      builder: (BuildContext context, GoRouterState state) {
-        return const AdminDashboardScreen();
-      },
-    ),
+        path: '/admin-dashboard',
+        builder: (BuildContext context, GoRouterState state) {
+          return const AdminDashboardScreen();
+        },
+        routes: [
+          GoRoute(
+            path: 'scholarship-applicants',
+            builder: (BuildContext context, GoRouterState state) {
+              return const ScholarshipApplicantsScreen();
+            },
+            routes: [
+              GoRoute(
+                path: 'applicant-details',
+                builder: (BuildContext context, GoRouterState state) {
+                  return const ApplicantDetailsScreen();
+                },
+              ),
+            ],
+          ),
+          GoRoute(
+            path: 'create-scholarship-call',
+            builder: (BuildContext context, GoRouterState state) {
+              return const CreateScholarshipCallScreen();
+            },
+          ),
+          GoRoute(
+            path: 'scholarship-history',
+            builder: (BuildContext context, GoRouterState state) {
+              return const ScholarshipHistoryScreen();
+            },
+          ),
+        ]),
     GoRoute(
-      path: '/cafeteria',
+      path: '/cafeteria-dashboard',
       builder: (BuildContext context, GoRouterState state) {
         return const CafeteriaDashboardScreen();
       },
+      routes: [
+        GoRoute(
+          path: 'redeem-voucher',
+          builder: (BuildContext context, GoRouterState state) {
+            return const RedeemVoucherScreen();
+          },
+        ),
+      ],
     ),
   ],
 );

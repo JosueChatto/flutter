@@ -14,28 +14,82 @@ class AdminDashboardScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/login'),
         ),
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              const Icon(Icons.admin_panel_settings, size: 80, color: Colors.indigo),
-              const SizedBox(height: 24),
-              Text(
-                'Bienvenido, Administrador',
-                style: Theme.of(context).textTheme.headlineSmall,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Desde aquí podrás gestionar las solicitudes de becas y las convocatorias.',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-            ],
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Cerrar Sesión',
+            onPressed: () {
+              // TODO: Implementar funcionalidad de cerrar sesión
+              context.go('/login');
+            },
           ),
+        ],
+      ),
+      body: GridView.count(
+        crossAxisCount: 2,
+        padding: const EdgeInsets.all(24.0),
+        crossAxisSpacing: 16.0,
+        mainAxisSpacing: 16.0,
+        children: <Widget>[
+          _buildDashboardCard(
+            context,
+            icon: Icons.people_outline,
+            title: 'Ver Solicitudes',
+            onTap: () => context.go('/admin-dashboard/scholarship-applicants'),
+          ),
+          _buildDashboardCard(
+            context,
+            icon: Icons.post_add_outlined,
+            title: 'Crear Convocatoria',
+            onTap: () => context.go('/admin-dashboard/create-scholarship-call'),
+          ),
+          _buildDashboardCard(
+            context,
+            icon: Icons.history_outlined,
+            title: 'Historial de Becas',
+            onTap: () => context.go('/admin-dashboard/scholarship-history'),
+          ),
+          _buildDashboardCard(
+            context,
+            icon: Icons.settings_outlined,
+            title: 'Configuración',
+            onTap: () {
+              // TODO: Navegar a la pantalla de configuración
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDashboardCard(BuildContext context,
+      {required IconData icon, required String title, required VoidCallback onTap}) {
+    return Card(
+      elevation: 4.0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Icon(icon, size: 50, color: Theme.of(context).primaryColorDark),
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Text(
+                title,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+              ),
+            ),
+          ],
         ),
       ),
     );
