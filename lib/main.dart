@@ -16,7 +16,6 @@ import 'screens/scholarship_applicants_screen.dart';
 import 'screens/applicant_details_screen.dart';
 import 'screens/create_scholarship_call_screen.dart';
 import 'screens/scholarship_history_screen.dart';
-import 'screens/redeem_voucher_screen.dart';
 
 void main() {
   runApp(
@@ -119,14 +118,6 @@ final GoRouter _router = GoRouter(
       builder: (BuildContext context, GoRouterState state) {
         return const CafeteriaDashboardScreen();
       },
-      routes: [
-        GoRoute(
-          path: 'redeem-voucher',
-          builder: (BuildContext context, GoRouterState state) {
-            return const RedeemVoucherScreen();
-          },
-        ),
-      ],
     ),
   ],
 );

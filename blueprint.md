@@ -31,7 +31,8 @@ La aplicación ofrece una experiencia de usuario fluida y moderna, con un diseñ
 ### Perfil de Cafetería
 
 - **Panel de Control (Dashboard):**
-  - **Canjear Vale de Comida:** Funcionalidad para escanear (simulado) el código QR de un estudiante y validar su vale de comida.
+  - **Visualizar Reportes:** Muestra una lista en tiempo real de los estudiantes con una beca alimenticia activa.
+  - **Registrar Canje:** Permite al personal marcar cuándo un estudiante ha recibido su comida, actualizando el estado para evitar duplicados en el día.
 
 ---
 
@@ -49,18 +50,15 @@ La aplicación ofrece una experiencia de usuario fluida y moderna, con un diseñ
 ## Plan de Desarrollo Futuro
 
 1.  **Integración con Backend (Firebase/Supabase):**
-    -   Conectar la aplicación a una base de datos para gestionar usuarios, convocatorias, solicitudes y documentos de forma persistente.
+    -   Conectar la aplicación a una base de datos como la propuesta en el script SQL para gestionar usuarios, convocatorias, solicitudes y canjes de forma persistente.
     -   Implementar un sistema de autenticación real.
     -   Utilizar servicios de almacenamiento para los documentos de los estudiantes.
 
 2.  **Funcionalidad de Notificaciones:**
     -   Añadir notificaciones push para informar a los estudiantes sobre cambios en el estado de su solicitud o nuevas convocatorias.
 
-3.  **Escaneo de QR Real:**
-    -   Integrar un paquete como `qr_code_scanner` para implementar la funcionalidad de escaneo de códigos QR en el perfil de cafetería.
-
-4.  **Internacionalización (i18n):**
+3.  **Internacionalización (i18n):**
     -   Preparar la aplicación para soportar múltiples idiomas.
 
-5.  **Pruebas Unitarias y de Integración:**
+4.  **Pruebas Unitarias y de Integración:**
     -   Desarrollar un conjunto de pruebas para garantizar la estabilidad y fiabilidad del código.
