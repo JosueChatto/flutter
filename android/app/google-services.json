@@ -1,0 +1,82 @@
+{
+  "project_info": {
+    "project_number": "948930682440",
+    "project_id": "amobecal",
+    "storage_bucket": "amobecal.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:948930682440:android:b857358e6e4be73f06827d",
+        "android_client_info": {
+          "package_name": "com.example.amobecal_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "948930682440-4gt0o4pjbmpii350vfnoc3aihaivh1aa.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA-rDpT0X0qJwX73uJRpDDVUWfE2fWBsNw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "948930682440-4gt0o4pjbmpii350vfnoc3aihaivh1aa.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "948930682440-htat77omn5pq9modnuosbg774k9oc56j.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.amobecalApp"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:948930682440:android:18248c962939c46106827d",
+        "android_client_info": {
+          "package_name": "com.example.myapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "948930682440-4gt0o4pjbmpii350vfnoc3aihaivh1aa.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA-rDpT0X0qJwX73uJRpDDVUWfE2fWBsNw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "948930682440-4gt0o4pjbmpii350vfnoc3aihaivh1aa.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "948930682440-htat77omn5pq9modnuosbg774k9oc56j.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.amobecalApp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
