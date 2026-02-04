@@ -1,0 +1,11 @@
+
+{
+  "users": [
+    {
+      "localId": "cafeteria_user_uid",
+      "email": "cafeteria@test.com",
+      "passwordHash": "password",
+      "emailVerified": true
+    }
+  ]
+}

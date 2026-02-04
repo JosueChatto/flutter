@@ -45,6 +45,12 @@ class StudentDashboardScreen extends StatelessWidget {
           ),
           _buildDashboardCard(
             context,
+            icon: Icons.school_outlined, // Nuevo ícono
+            title: 'Información de Becas', // Nuevo título
+            onTap: () => context.go('/student-dashboard/scholarships'), // Nueva ruta
+          ),
+          _buildDashboardCard(
+            context,
             icon: Icons.playlist_add_check_outlined,
             title: 'Estatus de Solicitud',
             onTap: () => context.go('/student-dashboard/application-status'),

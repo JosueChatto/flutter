@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart'; // Importar Firebase Core
+import 'firebase_options.dart'; // Importar opciones de Firebase
 
+import 'services/auth_service.dart'; // Importar AuthService
 import 'screens/login_screen.dart';
 import 'screens/student_dashboard_screen.dart';
 import 'screens/admin_dashboard_screen.dart';
@@ -16,11 +19,19 @@ import 'screens/scholarship_applicants_screen.dart';
 import 'screens/applicant_details_screen.dart';
 import 'screens/create_scholarship_call_screen.dart';
 import 'screens/scholarship_history_screen.dart';
+import 'screens/scholarship_list_screen.dart';
 
-void main() {
+void main() async { // Convertir main en async
+  WidgetsFlutterBinding.ensureInitialized(); // Asegurar que los bindings estén inicializados
+  await Firebase.initializeApp( // Inicializar Firebase
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => ThemeProvider(),
+    MultiProvider( // Usar MultiProvider para combinar múltiples providers
+      providers: [
+        Provider<AuthService>(create: (_) => AuthService()), // Proveer AuthService
+        ChangeNotifierProvider(create: (context) => ThemeProvider()), // Proveer ThemeProvider
+      ],
       child: const MyApp(),
     ),
   );
@@ -64,6 +75,12 @@ final GoRouter _router = GoRouter(
           path: 'scholarship-calls',
           builder: (BuildContext context, GoRouterState state) {
             return const ScholarshipCallsScreen();
+          },
+        ),
+        GoRoute(
+          path: 'scholarships', 
+          builder: (BuildContext context, GoRouterState state) {
+            return const ScholarshipListScreen();
           },
         ),
         GoRoute(
@@ -170,7 +187,7 @@ class MyApp extends StatelessWidget {
       colorScheme: ColorScheme.fromSeed(
         seedColor: primarySeedColor,
         brightness: Brightness.dark,
-        background: Colors.grey[900],
+        surface: Colors.grey[900], // Propiedad corregida
       ),
       textTheme: appTextTheme,
       appBarTheme: AppBarTheme(

@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
 
 class ApplicantDetailsScreen extends StatelessWidget {
@@ -7,105 +8,128 @@ class ApplicantDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Extraer el ID de la aplicación de los parámetros de la ruta
+    final String? applicationId = GoRouterState.of(context).extra as String?;
+
+    if (applicationId == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Error')),
+        body: const Center(
+          child: Text('No se proporcionó un ID de solicitud.'),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Detalle de la Solicitud'),
+        title: const Text('Detalles del Solicitante'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
+          // Navegación segura para volver a la lista
           onPressed: () => context.go('/admin-dashboard/scholarship-applicants'),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            _buildApplicantInfo(context),
-            const SizedBox(height: 24),
-            Text(
-              'Documentos Adjuntos',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+      body: FutureBuilder<DocumentSnapshot>(
+        future: FirebaseFirestore.instance.collection('applications').doc(applicationId).get(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(child: Text('Error al cargar los datos: ${snapshot.error}'));
+          }
+          if (!snapshot.hasData || !snapshot.data!.exists) {
+            return const Center(child: Text('No se encontró la solicitud.'));
+          }
+
+          final data = snapshot.data!.data() as Map<String, dynamic>?;
+          final studentName = data?['studentName'] as String? ?? 'No disponible';
+          final career = data?['career'] as String? ?? 'No disponible';
+          final status = data?['status'] as String? ?? 'desconocido';
+
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: ListView(
+              children: [
+                _buildDetailCard('Nombre del Estudiante', studentName, Icons.person_outline),
+                const SizedBox(height: 16),
+                _buildDetailCard('Carrera', career, Icons.school),
+                const SizedBox(height: 16),
+                _buildStatusCard(status),
+                const SizedBox(height: 32),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        // Lógica para aprobar la solicitud (se implementará)
+                      },
+                      icon: const Icon(Icons.check_circle_outline),
+                      label: const Text('Aprobar'),
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        // Lógica para rechazar la solicitud (se implementará)
+                      },
+                      icon: const Icon(Icons.cancel_outlined),
+                      label: const Text('Rechazar'),
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                    ),
+                  ],
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            _buildDocumentTile(context, 'Comprobante de Domicilio', Icons.home_work_outlined),
-            _buildDocumentTile(context, 'Historial Académico', Icons.school_outlined),
-            _buildDocumentTile(context, 'Identificación Oficial', Icons.badge_outlined),
-            const SizedBox(height: 32),
-            _buildActionButtons(context),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildApplicantInfo(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Nombre del Estudiante',
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Ingeniería en Sistemas Computacionales',
-          style: TextStyle(fontSize: 16, color: Colors.grey.shade700),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          '8vo Semestre',
-          style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-        ),
-        const Divider(height: 32, thickness: 1),
-      ],
-    );
-  }
-
-  Widget _buildDocumentTile(BuildContext context, String title, IconData icon) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 6.0),
-      child: ListTile(
-        leading: Icon(icon, color: Colors.indigo, size: 30),
-        title: Text(title),
-        trailing: const Icon(Icons.visibility_outlined, color: Colors.grey),
-        onTap: () {
-          // TODO: Implementar visualización del documento
+          );
         },
       ),
     );
   }
 
-  Widget _buildActionButtons(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: <Widget>[
-        ElevatedButton.icon(
-          icon: const Icon(Icons.check_circle_outline),
-          label: const Text('Aprobar'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.green.shade600,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          ),
-          onPressed: () {
-            // TODO: Implementar lógica de aprobación
-            context.go('/admin-dashboard/scholarship-applicants');
-          },
+  Widget _buildDetailCard(String title, String value, IconData icon) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: ListTile(
+        leading: Icon(icon, size: 40),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text(value, style: const TextStyle(fontSize: 16)),
+      ),
+    );
+  }
+
+  Widget _buildStatusCard(String status) {
+    final statusInfo = {
+      'pending': {
+        'text': 'Pendiente',
+        'icon': Icons.hourglass_top_outlined,
+        'color': Colors.orange,
+      },
+      'approved': {
+        'text': 'Aprobada',
+        'icon': Icons.check_circle_outline,
+        'color': Colors.green,
+      },
+      'rejected': {
+        'text': 'Rechazada',
+        'icon': Icons.cancel_outlined,
+        'color': Colors.red,
+      },
+    };
+
+    final info = statusInfo[status] ?? statusInfo['pending']!;
+
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: ListTile(
+        leading: Icon(info['icon'] as IconData, size: 40, color: info['color'] as Color),
+        title: const Text('Estado de la Solicitud', style: TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text(
+          info['text'] as String,
+          style: TextStyle(fontSize: 16, color: info['color'] as Color, fontWeight: FontWeight.bold),
         ),
-        ElevatedButton.icon(
-          icon: const Icon(Icons.highlight_off_outlined),
-          label: const Text('Rechazar'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.red.shade600,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          ),
-          onPressed: () {
-            // TODO: Implementar lógica de rechazo
-            context.go('/admin-dashboard/scholarship-applicants');
-          },
-        ),
-      ],
+      ),
     );
   }
 }
