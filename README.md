@@ -44,3 +44,5 @@ El proyecto está construido siguiendo las mejores prácticas de desarrollo en F
     -   **Tema:** Se adhiere a los principios de **Material Design 3**, con una paleta de colores coherente y una tipografía moderna y legible gracias a `google_fonts`.
     -   **Componentes:** Uso de widgets modernos y estilizados para una experiencia de usuario consistente.
     -   **Experiencia de Usuario:** Las interfaces están diseñadas para ser limpias, con una buena distribución de espacios y una jerarquía visual clara que facilita la interacción del usuario.
+
+veremos las solucioes
