@@ -4,8 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_test/flutter_test.dart';
 // CORRECCIÓN: Usar una ruta relativa para asegurar que se encuentre el archivo.
-import '../lib/firebase_options.dart'; 
-import 'package:flutter/widgets.dart';
+import 'package:myapp/firebase_options.dart'; 
 import 'dart:math';
 
 void main() {

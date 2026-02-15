@@ -50,19 +50,23 @@ class AuthService {
         final data = doc.data() as Map<String, dynamic>;
         developer.log('Paso 2 ÉXITO: Documento encontrado. Datos: $data', name: 'AuthService');
 
-        if (data.containsKey('role')) {
-          final role = data['role'] as String;
+        if (data.containsKey('rol')) {
+          final role = data['rol'] as String;
           developer.log('Rol encontrado: "$role"', name: 'AuthService');
           switch (role) {
-            case 'student': return UserRole.student;
-            case 'admin': return UserRole.admin;
-            case 'cafeteria': return UserRole.cafeteria;
+            case 'student':
+            case 'estudiante':
+              return UserRole.student;
+            case 'admin':
+              return UserRole.admin;
+            case 'cafeteria':
+              return UserRole.cafeteria;
             default:
               developer.log('ADVERTENCIA: Rol "$role" no reconocido.', name: 'AuthService', level: 900);
               return UserRole.unknown;
           }
         } else {
-          developer.log('ERROR: El documento existe pero no contiene el campo "role".', name: 'AuthService', level: 1000);
+          developer.log('ERROR: El documento existe pero no contiene el campo "rol".', name: 'AuthService', level: 1000);
           return UserRole.unknown;
         }
       } else {

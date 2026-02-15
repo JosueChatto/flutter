@@ -2,7 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Importar para manejar excepciones específicas
+
 import '../services/auth_service.dart';
 import '../main.dart'; // Para acceder a ThemeProvider
 
@@ -18,6 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscureText = true;
+  bool _isLoading = false; // Estado para controlar el indicador de carga
 
   @override
   void dispose() {
@@ -37,12 +39,18 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
+    // Iniciar el indicador de carga
+    setState(() {
+      _isLoading = true;
+    });
+
     final authService = Provider.of<AuthService>(context, listen: false);
+    String errorMessage = 'Ocurrió un error inesperado.'; // Mensaje por defecto
 
     try {
       final userRole = await authService.signIn(
-        email: _emailController.text,
-        password: _passwordController.text,
+        email: _emailController.text.trim(), // Usar trim para limpiar espacios
+        password: _passwordController.text.trim(),
       );
 
       if (!mounted) return;
@@ -58,17 +66,56 @@ class _LoginScreenState extends State<LoginScreen> {
           context.go('/cafeteria-dashboard');
           break;
         case UserRole.unknown:
-          Fluttertoast.showToast(msg: 'Rol de usuario no reconocido.');
+          // Este error es específico de nuestra lógica de negocio (problema con Firestore)
+          errorMessage = 'Tu usuario está autenticado pero no tiene un rol asignado. Contacta al administrador.';
+          _showErrorSnackbar(errorMessage);
           break;
       }
+    } on FirebaseAuthException catch (e) {
+      // Traducir errores de Firebase a mensajes amigables
+      switch (e.code) {
+        case 'user-not-found':
+          errorMessage = 'No se encontró un usuario con ese correo electrónico.';
+          break;
+        case 'wrong-password':
+          errorMessage = 'La contraseña es incorrecta. Por favor, inténtalo de nuevo.';
+          break;
+        case 'invalid-email':
+          errorMessage = 'El formato del correo electrónico no es válido.';
+          break;
+        case 'user-disabled':
+          errorMessage = 'Este usuario ha sido deshabilitado.';
+          break;
+        case 'too-many-requests':
+          errorMessage = 'Demasiados intentos fallidos. Intenta más tarde.';
+          break;
+        default:
+          errorMessage = 'Error de autenticación. Revisa tus credenciales.';
+      }
+      _showErrorSnackbar(errorMessage);
     } catch (e) {
-      Fluttertoast.showToast(
-        msg: "Error al iniciar sesión: ${e.toString()}",
-        backgroundColor: Colors.red,
-        textColor: Colors.white,
-      );
+      // Para cualquier otro error no esperado
+      _showErrorSnackbar(e.toString());
+    } finally {
+      // Detener el indicador de carga, independientemente del resultado
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
+  
+  void _showErrorSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Theme.of(context).colorScheme.error,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
 
   void _showRequirements() {
     showDialog(
@@ -178,6 +225,7 @@ d) No utilizar los servicios alimenticios otorgados.
                     decoration: const InputDecoration(
                       labelText: 'Correo Electrónico',
                       prefixIcon: Icon(Icons.email_outlined),
+                      border: OutlineInputBorder(),
                     ),
                     keyboardType: TextInputType.emailAddress,
                     validator: (value) =>
@@ -191,12 +239,14 @@ d) No utilizar los servicios alimenticios otorgados.
                     decoration: InputDecoration(
                       labelText: 'Contraseña',
                       prefixIcon: const Icon(Icons.lock_outline),
+                      border: const OutlineInputBorder(),
                       suffixIcon: IconButton(
                         icon: Icon(
                           _obscureText ? Icons.visibility_off : Icons.visibility,
                         ),
                         onPressed: _togglePasswordVisibility,
                       ),
+                      
                     ),
                     obscureText: _obscureText,
                     validator: (value) =>
@@ -205,23 +255,29 @@ d) No utilizar los servicios alimenticios otorgados.
                             : null,
                   ),
                   const SizedBox(height: 30),
-                  ElevatedButton(
-                    onPressed: _login,
-                    child: const Text('Iniciar Sesión'),
-                  ),
+                  // Mostrar botón o indicador de carga
+                  _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                          onPressed: _login,
+                          child: const Text('Iniciar Sesión'),
+                        ),
                   const SizedBox(height: 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       IconButton(
                         icon: Icon(themeProvider.themeMode == ThemeMode.dark ? Icons.light_mode : Icons.dark_mode),
-                        onPressed: () => themeProvider.toggleTheme(),
+                        onPressed: _isLoading ? null : () => themeProvider.toggleTheme(),
                         tooltip: 'Cambiar Tema',
                       ),
                       const SizedBox(width: 20),
                       IconButton(
                         icon: const Icon(Icons.info_outline),
-                        onPressed: _showRequirements,
+                        onPressed: _isLoading ? null : _showRequirements,
                         tooltip: 'Requisitos de la Beca',
                       ),
                     ],
