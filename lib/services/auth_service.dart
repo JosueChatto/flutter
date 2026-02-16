@@ -1,81 +1,75 @@
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'dart:developer' as developer; // Importar la librería de logging
+import 'package:cloud_firestore/cloud_firestore.dart';
 
+// Enum para representar los roles de usuario de forma segura y clara.
 enum UserRole { student, admin, cafeteria, unknown }
 
 class AuthService {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  // Obtiene el estado de autenticación del usuario en tiempo real.
+  Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
+
+  /// Inicia sesión con email y contraseña y determina el rol del usuario.
   Future<UserRole> signIn({required String email, required String password}) async {
-    developer.log('--- Iniciando proceso de SignIn ---', name: 'AuthService');
     try {
-      // 1. Autenticación con Firebase Auth
-      developer.log('Paso 1: Intentando autenticar a $email con Firebase Auth.', name: 'AuthService');
-      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+      // 1. Autenticar al usuario con Firebase Authentication.
+      final UserCredential userCredential = await _firebaseAuth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      if (userCredential.user == null) {
-        developer.log('Error: userCredential.user es nulo después del login.', name: 'AuthService', level: 1000);
+      final User? user = userCredential.user;
+
+      if (user == null) {
+        // Si por alguna razón el usuario es nulo, se considera un error.
         return UserRole.unknown;
       }
 
-      final String uid = userCredential.user!.uid;
-      developer.log('Paso 1 ÉXITO: Usuario autenticado. UID: $uid', name: 'AuthService');
+      // 2. Obtener el rol del usuario desde Firestore.
+      final DocumentSnapshot userDoc = await _firestore.collection('users').doc(user.uid).get();
 
-      // 2. Obtener rol de Firestore
-      return await _getUserRole(uid);
+      if (!userDoc.exists) {
+        // Si el usuario está autenticado pero no tiene un documento en Firestore.
+        // Esto es un estado inconsistente que debemos manejar.
+        return UserRole.unknown;
+      }
+      
+      // 3. Determinar el rol a partir del documento.
+      final data = userDoc.data() as Map<String, dynamic>;
+      final String roleString = data['rol'] ?? '';
 
-    } on FirebaseAuthException catch (e) {
-      developer.log('ERROR en Firebase Auth: ${e.code}', error: e, name: 'AuthService', level: 1000);
-      // Re-lanzar la excepción para que la UI la pueda manejar y mostrar un mensaje
-      throw Exception('Error de autenticación: ${e.message}');
-    } catch (e, s) {
-      developer.log('ERROR DESCONOCIDO en signIn: $e', name: 'AuthService', error: e, stackTrace: s, level: 1000);
-      throw Exception('Ocurrió un error inesperado.');
+      switch (roleString) {
+        case 'student':
+          return UserRole.student;
+        case 'admin':
+          return UserRole.admin;
+        case 'cafeteria':
+          return UserRole.cafeteria;
+        default:
+          // Si el campo 'rol' no existe o tiene un valor inesperado.
+          return UserRole.unknown;
+      }
+    } on FirebaseAuthException {
+        // Si ocurre un error de autenticación (ej. contraseña incorrecta),
+        // se relanza la excepción para que la UI la pueda atrapar y mostrar un mensaje específico.
+        rethrow;
+    } catch (e) {
+        // Para cualquier otro tipo de error (ej. problema de red, error de Firestore),
+        // lo envolvemos en una excepción genérica.
+        throw Exception('Ocurrió un error al verificar el rol del usuario.');
     }
   }
 
-  Future<UserRole> _getUserRole(String uid) async {
-    developer.log('--- Obteniendo rol de usuario ---', name: 'AuthService');
-    try {
-      developer.log('Paso 2: Buscando documento en /users/$uid', name: 'AuthService');
-      final doc = await _firestore.collection('users').doc(uid).get();
+  /// Cierra la sesión del usuario actual.
+  Future<void> signOut() async {
+    await _firebaseAuth.signOut();
+  }
 
-      if (doc.exists) {
-        final data = doc.data() as Map<String, dynamic>;
-        developer.log('Paso 2 ÉXITO: Documento encontrado. Datos: $data', name: 'AuthService');
-
-        if (data.containsKey('rol')) {
-          final role = data['rol'] as String;
-          developer.log('Rol encontrado: "$role"', name: 'AuthService');
-          switch (role) {
-            case 'student':
-            case 'estudiante':
-              return UserRole.student;
-            case 'admin':
-              return UserRole.admin;
-            case 'cafeteria':
-              return UserRole.cafeteria;
-            default:
-              developer.log('ADVERTENCIA: Rol "$role" no reconocido.', name: 'AuthService', level: 900);
-              return UserRole.unknown;
-          }
-        } else {
-          developer.log('ERROR: El documento existe pero no contiene el campo "rol".', name: 'AuthService', level: 1000);
-          return UserRole.unknown;
-        }
-      } else {
-        developer.log('ERROR: No se encontró ningún documento para el usuario en la colección "users".', name: 'AuthService', level: 1000);
-        return UserRole.unknown;
-      }
-    } catch (e, s) {
-      developer.log('ERROR al obtener rol de Firestore: $e', name: 'AuthService', error: e, stackTrace: s, level: 1000);
-      return UserRole.unknown;
-    }
+  /// Obtiene el usuario actualmente autenticado.
+  User? getCurrentUser() {
+    return _firebaseAuth.currentUser;
   }
 }
