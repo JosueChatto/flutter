@@ -3,34 +3,34 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_core/firebase_core.dart'; // Importar Firebase Core
-import 'firebase_options.dart'; // Importar opciones de Firebase
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
-import 'services/auth_service.dart'; // Importar AuthService
+import 'services/auth_service.dart';
 import 'screens/login_screen.dart';
 import 'screens/student_dashboard_screen.dart';
 import 'screens/admin_dashboard_screen.dart';
 import 'screens/cafeteria_dashboard_screen.dart';
 import 'screens/student_profile_screen.dart';
-import 'screens/scholarship_calls_screen.dart';
-import 'screens/upload_documents_screen.dart';
 import 'screens/application_status_screen.dart';
+import 'screens/scholarship_application_screen.dart';
+import 'screens/scholarship_info_screen.dart';      
 import 'screens/scholarship_applicants_screen.dart';
 import 'screens/applicant_details_screen.dart';
 import 'screens/create_scholarship_call_screen.dart';
-import 'screens/scholarship_history_screen.dart';
-import 'screens/scholarship_list_screen.dart';
+import 'screens/accepted_list_screen.dart';
+import 'screens/admin_settings_screen.dart';
 
-void main() async { // Convertir main en async
-  WidgetsFlutterBinding.ensureInitialized(); // Asegurar que los bindings estén inicializados
-  await Firebase.initializeApp( // Inicializar Firebase
+void main() async { 
+  WidgetsFlutterBinding.ensureInitialized(); 
+  await Firebase.initializeApp( 
     options: DefaultFirebaseOptions.currentPlatform,
   );
   runApp(
-    MultiProvider( // Usar MultiProvider para combinar múltiples providers
+    MultiProvider( 
       providers: [
-        Provider<AuthService>(create: (_) => AuthService()), // Proveer AuthService
-        ChangeNotifierProvider(create: (context) => ThemeProvider()), // Proveer ThemeProvider
+        Provider<AuthService>(create: (_) => AuthService()), 
+        ChangeNotifierProvider(create: (context) => ThemeProvider()), 
       ],
       child: const MyApp(),
     ),
@@ -72,27 +72,21 @@ final GoRouter _router = GoRouter(
           },
         ),
         GoRoute(
-          path: 'scholarship-calls',
-          builder: (BuildContext context, GoRouterState state) {
-            return const ScholarshipCallsScreen();
-          },
-        ),
-        GoRoute(
-          path: 'scholarships', 
-          builder: (BuildContext context, GoRouterState state) {
-            return const ScholarshipListScreen();
-          },
-        ),
-        GoRoute(
-          path: 'upload-documents',
-          builder: (BuildContext context, GoRouterState state) {
-            return const UploadDocumentsScreen();
-          },
-        ),
-        GoRoute(
           path: 'application-status',
           builder: (BuildContext context, GoRouterState state) {
             return const ApplicationStatusScreen();
+          },
+        ),
+        GoRoute(
+          path: 'scholarship-application', 
+          builder: (BuildContext context, GoRouterState state) {
+            return const ScholarshipApplicationScreen();
+          },
+        ),
+        GoRoute(
+          path: 'scholarship-info',      
+          builder: (BuildContext context, GoRouterState state) {
+            return const ScholarshipInfoScreen();
           },
         ),
       ],
@@ -124,9 +118,15 @@ final GoRouter _router = GoRouter(
             },
           ),
           GoRoute(
-            path: 'scholarship-history',
+            path: 'accepted-list',
             builder: (BuildContext context, GoRouterState state) {
-              return const ScholarshipHistoryScreen();
+              return const AcceptedListScreen();
+            },
+          ),
+          GoRoute(
+            path: 'settings', 
+            builder: (BuildContext context, GoRouterState state) {
+              return const AdminSettingsScreen();
             },
           ),
         ]),
@@ -157,7 +157,7 @@ class MyApp extends StatelessWidget {
     final lightTheme = ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: primarySeedColor,
+        seedColor: primarySeedColor, 
         brightness: Brightness.light,
       ),
       textTheme: appTextTheme,
@@ -187,7 +187,7 @@ class MyApp extends StatelessWidget {
       colorScheme: ColorScheme.fromSeed(
         seedColor: primarySeedColor,
         brightness: Brightness.dark,
-        surface: Colors.grey[900], // Propiedad corregida
+        surface: Colors.grey[900], 
       ),
       textTheme: appTextTheme,
       appBarTheme: AppBarTheme(

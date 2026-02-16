@@ -1,103 +1,113 @@
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
+import '../main.dart'; // Para acceder a ThemeProvider
+
+// Modelo para los datos del reporte
+class ScholarshipReport {
+  final String reportId;
+  final String controlNumber;
+  final String cafeteriaId;
+  final String type;
+  final double amount;
+  final String startDate;
+  final String endDate;
+  final String status;
+
+  ScholarshipReport({
+    required this.reportId,
+    required this.controlNumber,
+    required this.cafeteriaId,
+    required this.type,
+    required this.amount,
+    required this.startDate,
+    required this.endDate,
+    required this.status,
+  });
+}
 
 class CafeteriaDashboardScreen extends StatelessWidget {
   const CafeteriaDashboardScreen({super.key});
 
+  Future<void> _signOut(BuildContext context) async {
+    await FirebaseAuth.instance.signOut();
+    context.go('/login');
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Datos de ejemplo de estudiantes con beca alimenticia activa
-    final List<Map<String, String>> students = List.generate(
-      8,
-      (index) => {
-        'name': 'Estudiante ${index + 1}',
-        'id': '202400${index + 1}',
-        'status': 'Canjeado' // O 'Pendiente'
-      },
-    );
+    final themeProvider = Provider.of<ThemeProvider>(context);
+
+    // Datos de ejemplo para el reporte
+    final List<ScholarshipReport> reports = [
+      ScholarshipReport(reportId: 'R001', controlNumber: '2024001', cafeteriaId: 'CAF01', type: 'Alimenticia', amount: 1500.00, startDate: '2024-08-01', endDate: '2024-12-15', status: 'Activa'),
+      ScholarshipReport(reportId: 'R002', controlNumber: '2024002', cafeteriaId: 'CAF01', type: 'Alimenticia', amount: 1500.00, startDate: '2024-08-01', endDate: '2024-12-15', status: 'Activa'),
+      ScholarshipReport(reportId: 'R003', controlNumber: '2024003', cafeteriaId: 'CAF01', type: 'Alimenticia', amount: 1500.00, startDate: '2024-08-01', endDate: '2024-12-15', status: 'Inactiva'),
+      ScholarshipReport(reportId: 'R004', controlNumber: '2024004', cafeteriaId: 'CAF01', type: 'Alimenticia', amount: 1500.00, startDate: '2024-08-01', endDate: '2024-12-15', status: 'Activa'),
+    ];
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Gestión de Comedor'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go('/login'),
-        ),
+        title: const Text('Reporte de Becados'),
         actions: [
+          IconButton(
+            icon: Icon(themeProvider.themeMode == ThemeMode.dark ? Icons.light_mode : Icons.dark_mode),
+            tooltip: 'Cambiar Tema',
+            onPressed: () => themeProvider.toggleTheme(),
+          ),
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Cerrar Sesión',
-            onPressed: () => context.go('/login'),
+            onPressed: () => _signOut(context),
           ),
         ],
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text(
-              'Estudiantes con Beca Alimenticia Activa',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: students.length,
-              itemBuilder: (context, index) {
-                final student = students[index];
-                final bool isRedeemed = student['status'] == 'Canjeado';
-
-                return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                    leading: CircleAvatar(
-                      backgroundColor: isRedeemed ? Colors.green.shade100 : Colors.indigo.shade100,
-                      child: Icon(
-                        isRedeemed ? Icons.check_circle_outline : Icons.pending_outlined,
-                        color: isRedeemed ? Colors.green.shade700 : Colors.indigo,
+      body: SingleChildScrollView(
+        scrollDirection: Axis.vertical,
+        child: Container(
+          width: double.infinity,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: DataTable(
+              columnSpacing: 20,
+              headingRowColor: MaterialStateProperty.all(Theme.of(context).colorScheme.primary.withOpacity(0.1)),
+              columns: const [
+                DataColumn(label: Text('ID Reporte')),
+                DataColumn(label: Text('No. Control')),
+                DataColumn(label: Text('ID Cafetería')),
+                DataColumn(label: Text('Tipo')),
+                DataColumn(label: Text('Monto')),
+                DataColumn(label: Text('Inicio')),
+                DataColumn(label: Text('Fin')),
+                DataColumn(label: Text('Estatus')),
+              ],
+              rows: reports.map((report) {
+                return DataRow(
+                  cells: [
+                    DataCell(Text(report.reportId)),
+                    DataCell(Text(report.controlNumber)),
+                    DataCell(Text(report.cafeteriaId)),
+                    DataCell(Text(report.type)),
+                    DataCell(Text(report.amount.toStringAsFixed(2))),
+                    DataCell(Text(report.startDate)),
+                    DataCell(Text(report.endDate)),
+                    DataCell(
+                      Chip(
+                        label: Text(report.status),
+                        backgroundColor: report.status == 'Activa' ? Colors.green.shade100 : Colors.red.shade100,
+                        labelStyle: TextStyle(
+                          color: report.status == 'Activa' ? Colors.green.shade900 : Colors.red.shade900,
+                        ),
                       ),
                     ),
-                    title: Text(
-                      student['name']!,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text('No. Control: ${student['id']!}'),
-                    trailing: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: isRedeemed ? Colors.grey : Colors.green,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                      ),
-                      onPressed: isRedeemed
-                          ? null // Deshabilitar si ya fue canjeado
-                          : () {
-                              // Lógica para registrar el canje
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Canje registrado para ${student['name']!}'),
-                                  backgroundColor: Colors.green,
-                                ),
-                              );
-                              // Aquí se actualizaría el estado en la base de datos
-                            },
-                      child: Text(isRedeemed ? 'Canjeado' : 'Registrar'),
-                    ),
-                  ),
+                  ],
                 );
-              },
+              }).toList(),
             ),
           ),
-        ],
+        ),
       ),
     );
   }

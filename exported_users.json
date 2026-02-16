@@ -1,0 +1,34 @@
+{"users": [
+{
+  "localId": "YxwDHgxq8xgNUFuJBkA5iXH7hpx1",
+  "email": "admin@test.com",
+  "emailVerified": false,
+  "passwordHash": "yC4sEJBNT1Ayq72Mm/UEl+vib910XRcMV+DFcEyr/dzNFMyAm9ov8d87Tl6FQnOip2yXocgTV+MRNNS5NZmpsQ==",
+  "salt": "pvtuVPDRa3rINQ==",
+  "lastSignedInAt": "1771203885307",
+  "createdAt": "1770217207140",
+  "disabled": false,
+  "providerUserInfo": []
+},
+{
+  "localId": "htFoXWLurpaSx8oPECxxhO2ANPY2",
+  "email": "cafeteria@test.com",
+  "emailVerified": false,
+  "passwordHash": "JbDHHXQBZSHJlDy6S+uMulBmwIsQAVv09bhl4oBgAJd4AvDc01HitDB6DJLg7o0G9/SmMAW67UZckEBQF3o9nQ==",
+  "salt": "V38qs2z1IqMQig==",
+  "lastSignedInAt": "1771204024997",
+  "createdAt": "1770404612493",
+  "disabled": false,
+  "providerUserInfo": []
+},
+{
+  "localId": "rd8NcSHSuwTFHnEh2BW84wiLfsV2",
+  "email": "estudiante@test.com",
+  "emailVerified": false,
+  "passwordHash": "jkx4b5hbDIYVkZ9PBIEtrcpR+O6GA8MGkGl+d0o7QQb9dmImAC5wyuW52ALmzFv4zA1GI4Blff2Q8LPB+MSTsg==",
+  "salt": "j5YB95yVXsb0ig==",
+  "lastSignedInAt": "1771226088551",
+  "createdAt": "1770224586471",
+  "disabled": false,
+  "providerUserInfo": []
+}]}
