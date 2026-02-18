@@ -20,6 +20,8 @@ import 'screens/applicant_details_screen.dart';
 import 'screens/create_scholarship_call_screen.dart';
 import 'screens/accepted_list_screen.dart';
 import 'screens/admin_settings_screen.dart';
+import 'screens/scholarship_calls_list_screen.dart';
+import 'screens/admin_scholarship_calls_screen.dart';
 
 void main() async { 
   WidgetsFlutterBinding.ensureInitialized(); 
@@ -37,104 +39,92 @@ void main() async {
   );
 }
 
-// Gestor de estado para el tema
 class ThemeProvider with ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.system;
-
   ThemeMode get themeMode => _themeMode;
-
   void toggleTheme() {
     _themeMode = _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
     notifyListeners();
   }
 }
 
-// Configuración del enrutador
 final GoRouter _router = GoRouter(
   initialLocation: '/login',
   routes: <RouteBase>[
     GoRoute(
       path: '/login',
-      builder: (BuildContext context, GoRouterState state) {
-        return const LoginScreen();
-      },
+      builder: (BuildContext context, GoRouterState state) => const LoginScreen(),
     ),
     GoRoute(
       path: '/student-dashboard',
-      builder: (BuildContext context, GoRouterState state) {
-        return const StudentDashboardScreen();
-      },
+      builder: (BuildContext context, GoRouterState state) => const StudentDashboardScreen(),
       routes: <RouteBase>[
         GoRoute(
           path: 'profile',
-          builder: (BuildContext context, GoRouterState state) {
-            return const StudentProfileScreen();
-          },
+          builder: (BuildContext context, GoRouterState state) => const StudentProfileScreen(),
         ),
         GoRoute(
           path: 'application-status',
-          builder: (BuildContext context, GoRouterState state) {
-            return const ApplicationStatusScreen();
-          },
+          builder: (BuildContext context, GoRouterState state) => const ApplicationStatusScreen(),
         ),
         GoRoute(
-          path: 'scholarship-application', 
+          path: 'scholarship-calls',
+          builder: (BuildContext context, GoRouterState state) => const ScholarshipCallsListScreen(),
+        ),
+        GoRoute(
+          path: 'scholarship-application/:callId', 
           builder: (BuildContext context, GoRouterState state) {
-            return const ScholarshipApplicationScreen();
+            final callId = state.pathParameters['callId']!;
+            return ScholarshipApplicationScreen(callId: callId);
           },
         ),
         GoRoute(
           path: 'scholarship-info',      
-          builder: (BuildContext context, GoRouterState state) {
-            return const ScholarshipInfoScreen();
-          },
+          builder: (BuildContext context, GoRouterState state) => const ScholarshipInfoScreen(),
         ),
       ],
     ),
     GoRoute(
         path: '/admin-dashboard',
-        builder: (BuildContext context, GoRouterState state) {
-          return const AdminDashboardScreen();
-        },
+        builder: (BuildContext context, GoRouterState state) => const AdminDashboardScreen(),
         routes: [
           GoRoute(
-            path: 'scholarship-applicants',
-            builder: (BuildContext context, GoRouterState state) {
-              return const ScholarshipApplicantsScreen();
-            },
+            path: 'admin-scholarship-calls',
+            builder: (BuildContext context, GoRouterState state) => const AdminScholarshipCallsScreen(),
             routes: [
-              GoRoute(
-                path: 'applicant-details',
-                builder: (BuildContext context, GoRouterState state) {
-                  return const ApplicantDetailsScreen();
-                },
-              ),
-            ],
+                 GoRoute(
+                    path: ':callId/applicant-details/:applicantId',
+                    builder: (context, state) {
+                      final callId = state.pathParameters['callId']!;
+                      final applicantId = state.pathParameters['applicantId']!;
+                      return ApplicantDetailsScreen(callId: callId, applicantId: applicantId);
+                    }
+                  ),
+            ]
+          ),
+          GoRoute(
+            path: 'scholarship-applicants/:callId',
+            builder: (BuildContext context, GoRouterState state) {
+              final callId = state.pathParameters['callId']!;
+              return ScholarshipApplicantsScreen(callId: callId);
+            },
           ),
           GoRoute(
             path: 'create-scholarship-call',
-            builder: (BuildContext context, GoRouterState state) {
-              return const CreateScholarshipCallScreen();
-            },
+            builder: (BuildContext context, GoRouterState state) => const CreateScholarshipCallScreen(),
           ),
           GoRoute(
             path: 'accepted-list',
-            builder: (BuildContext context, GoRouterState state) {
-              return const AcceptedListScreen();
-            },
+            builder: (BuildContext context, GoRouterState state) => const AcceptedListScreen(),
           ),
           GoRoute(
             path: 'settings', 
-            builder: (BuildContext context, GoRouterState state) {
-              return const AdminSettingsScreen();
-            },
+            builder: (BuildContext context, GoRouterState state) => const AdminSettingsScreen(),
           ),
         ]),
     GoRoute(
       path: '/cafeteria-dashboard',
-      builder: (BuildContext context, GoRouterState state) {
-        return const CafeteriaDashboardScreen();
-      },
+      builder: (BuildContext context, GoRouterState state) => const CafeteriaDashboardScreen(),
     ),
   ],
 );

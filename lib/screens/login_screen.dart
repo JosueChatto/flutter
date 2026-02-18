@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // Importar para manejar excepciones específicas
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../services/auth_service.dart';
 import '../main.dart'; // Para acceder a ThemeProvider
@@ -19,7 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscureText = true;
-  bool _isLoading = false; // Estado para controlar el indicador de carga
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -39,17 +39,16 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    // Iniciar el indicador de carga
     setState(() {
       _isLoading = true;
     });
 
     final authService = Provider.of<AuthService>(context, listen: false);
-    String errorMessage = 'Ocurrió un error inesperado.'; // Mensaje por defecto
+    String errorMessage;
 
     try {
       final userRole = await authService.signIn(
-        email: _emailController.text.trim(), // Usar trim para limpiar espacios
+        email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
 
@@ -66,38 +65,39 @@ class _LoginScreenState extends State<LoginScreen> {
           context.go('/cafeteria-dashboard');
           break;
         case UserRole.unknown:
-          // Este error es específico de nuestra lógica de negocio (problema con Firestore)
           errorMessage = 'Tu usuario está autenticado pero no tiene un rol asignado. Contacta al administrador.';
           _showErrorSnackbar(errorMessage);
           break;
       }
     } on FirebaseAuthException catch (e) {
-      // Traducir errores de Firebase a mensajes amigables
-      switch (e.code) {
-        case 'user-not-found':
-          errorMessage = 'No se encontró un usuario con ese correo electrónico.';
-          break;
-        case 'wrong-password':
-          errorMessage = 'La contraseña es incorrecta. Por favor, inténtalo de nuevo.';
-          break;
-        case 'invalid-email':
-          errorMessage = 'El formato del correo electrónico no es válido.';
-          break;
-        case 'user-disabled':
-          errorMessage = 'Este usuario ha sido deshabilitado.';
-          break;
-        case 'too-many-requests':
-          errorMessage = 'Demasiados intentos fallidos. Intenta más tarde.';
-          break;
-        default:
-          errorMessage = 'Error de autenticación. Revisa tus credenciales.';
-      }
+        // Mensaje genérico para credenciales inválidas por seguridad
+        const String invalidCredentialsMessage = 'Las credenciales son incorrectas. Por favor, revisa el correo y la contraseña.';
+
+        switch (e.code) {
+          // Códigos de error comunes para credenciales incorrectas
+          case 'user-not-found':
+          case 'wrong-password':
+          case 'invalid-credential': // El código de error moderno que estabas recibiendo
+            errorMessage = invalidCredentialsMessage;
+            break;
+          case 'invalid-email':
+            errorMessage = 'El formato del correo electrónico no es válido.';
+            break;
+          case 'user-disabled':
+            errorMessage = 'Este usuario ha sido deshabilitado. Contacta al administrador.';
+            break;
+          case 'too-many-requests':
+            errorMessage = 'Se ha bloqueado el acceso por demasiados intentos fallidos. Inténtalo de nuevo más tarde.';
+            break;
+          default:
+            // Un mensaje para cualquier otro error inesperado de Firebase
+            errorMessage = 'Ocurrió un error de autenticación inesperado. Código: ${e.code}';
+        }
       _showErrorSnackbar(errorMessage);
     } catch (e) {
-      // Para cualquier otro error no esperado
-      _showErrorSnackbar(e.toString());
+      errorMessage = 'Ocurrió un error inesperado. Por favor, intenta de nuevo.';
+      _showErrorSnackbar(errorMessage);
     } finally {
-      // Detener el indicador de carga, independientemente del resultado
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -116,69 +116,20 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-
-  void _showRequirements() {
+  void _showSystemInfo() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Convocatoria Becas Alimenticias 2025-1"),
+          title: const Text("¿Qué es AMOBECAL?"),
           content: const SingleChildScrollView(
             child: Text(
-              '''Institución: TecNM - Instituto Tecnológico de Colima
-
-**Objetivo**
-Propiciar que los estudiantes cuenten con un apoyo para continuar su formación profesional, atendiendo políticas de equidad para estudiantes con capacidades diferentes o situaciones particulares, buscando la permanencia y continuación de sus estudios.
-
-**Disposiciones Generales**
-- **Población Objetivo:** Todo el estudiantado inscrito en el TecNM – Instituto Tecnológico de Colima.
-- **Características de las becas:** Consisten en el otorgamiento de servicios alimenticios en las cafeterías del Instituto, con un horario de 08:00 a 17:00 horas y de acuerdo al calendario escolar vigente.
-- **Requisitos de elegibilidad:** Para solicitar una beca alimenticia, el estudiantado deberá estar inscrito en el semestre actual.
-
-**Criterios de Selección**
-Los aspirantes que cumplan con el requisito serán seleccionados prioritariamente en función de los siguientes criterios:
-(A) Con situación económica adversa.
-(B) Con capacidades diferentes.
-(C) Que sean madres solteras o embarazadas.
-(D) Que su lugar de residencia esté alejado del instituto.
-(E) Que su carga horaria les obligue a estar un mayor número de horas en la institución, siempre y cuando no se deba a reprobación.
-(F) Que preferentemente no cuenten con algún beneficio equivalente de tipo económico o en especie otorgado por organismos públicos o privados al momento de solicitar la beca.
-(G) Que participen en equipos o grupos representativos de la institución, siempre y cuando lo requieran.
-
-**Derechos y Obligaciones de los Becarios**
-
-*Derechos*
-a) Recibir por parte del Comité de becas alimenticias la notificación de la asignación de la beca.
-b) Recibir el servicio alimenticio en las cafeterías del TecNM Instituto Tecnológico de Colima, en horario de 08:00 a 17:00 horas y de acuerdo al calendario escolar vigente.
-
-*Obligaciones*
-a) Presentar la credencial de estudiante vigente para recibir la beca alimenticia.
-b) Asistir con regularidad a clases.
-c) Observar buena conducta dentro y fuera de la Institución.
-d) Mantener un buen desempeño académico.
-e) Participar en eventos y/o proyectos institucionales conforme a los esquemas de control establecidos.
-
-**Causas de Cancelación**
-a) Proporcionar datos falsos o alterar la documentación adjunta a su solicitud.
-b) Incumplir con cualquiera de sus obligaciones.
-c) Baja temporal, definitiva o deserción del plantel.
-d) No utilizar los servicios alimenticios otorgados.
-
-**Proceso de Solicitud**
-- **Medio de envío:** Correo electrónico institucional.
-- **Destinatario:** becasyseguro@colima.tecnm.mx.
-- **Formato:** Un solo archivo en formato PDF con el escaneo claro y legible de los documentos requeridos.
-
-**Fechas Importantes (Cronograma)**
-- **Recepción de solicitudes:** Del 10 de febrero al 17 de febrero de 2025.
-- **Publicación de resultados:** 22 de febrero de 2025 (en la página web del TecNM).
-- **Inicio del servicio:** A partir del 24 de febrero del año en curso.
-              '''
+              '''**AMOBECAL** (Apoyo y Monitoreo de Becas Alimenticias) es una plataforma digital diseñada para gestionar el programa de becas alimenticias del Instituto.\n\n**Para Estudiantes:**\nPermite solicitar la beca, completar los formularios requeridos, consultar el estado de la solicitud (aprobada, rechazada o en revisión) y acceder a su perfil.\n\n**Para Administradores:**\nOfrece un panel para revisar las solicitudes de los estudiantes, ver sus datos y aprobar o rechazar las becas de manera eficiente.\n\nEl objetivo es hacer el proceso más transparente, rápido y accesible para todos.'''
             ),
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text("Cerrar"),
+              child: const Text("Entendido"),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -246,7 +197,6 @@ d) No utilizar los servicios alimenticios otorgados.
                         ),
                         onPressed: _togglePasswordVisibility,
                       ),
-                      
                     ),
                     obscureText: _obscureText,
                     validator: (value) =>
@@ -255,7 +205,6 @@ d) No utilizar los servicios alimenticios otorgados.
                             : null,
                   ),
                   const SizedBox(height: 30),
-                  // Mostrar botón o indicador de carga
                   _isLoading
                       ? const Center(child: CircularProgressIndicator())
                       : ElevatedButton(
@@ -277,8 +226,8 @@ d) No utilizar los servicios alimenticios otorgados.
                       const SizedBox(width: 20),
                       IconButton(
                         icon: const Icon(Icons.info_outline),
-                        onPressed: _isLoading ? null : _showRequirements,
-                        tooltip: 'Requisitos de la Beca',
+                        onPressed: _isLoading ? null : _showSystemInfo,
+                        tooltip: 'Sobre AMOBECAL',
                       ),
                     ],
                   ),

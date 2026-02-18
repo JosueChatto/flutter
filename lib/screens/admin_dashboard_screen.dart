@@ -19,16 +19,10 @@ class AdminDashboardScreen extends StatelessWidget {
 
     final List<DashboardItem> items = [
       DashboardItem(
-        icon: Icons.people_outline,
-        title: 'Ver Solicitudes',
-        subtitle: 'Revisa y gestiona las solicitudes de beca.',
-        onTap: () => context.go('/admin-dashboard/scholarship-applicants'),
-      ),
-      DashboardItem(
-        icon: Icons.post_add_outlined,
-        title: 'Crear Nueva Convocatoria',
-        subtitle: 'Publica una nueva convocatoria de becas.',
-        onTap: () => context.go('/admin-dashboard/create-scholarship-call'),
+        icon: Icons.folder_copy_outlined, // Icono actualizado
+        title: 'Gestionar Convocatorias', // Título actualizado
+        subtitle: 'Ver historial, solicitudes y crear nuevas.',
+        onTap: () => context.go('/admin-dashboard/admin-scholarship-calls'), // <- Ruta actualizada
       ),
       DashboardItem(
         icon: Icons.checklist_rtl_outlined,

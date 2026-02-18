@@ -39,10 +39,12 @@ class AuthService {
       
       // 3. Determinar el rol a partir del documento.
       final data = userDoc.data() as Map<String, dynamic>;
-      final String roleString = data['rol'] ?? '';
+      // CORRECCIÓN: Se busca el campo 'rol' en minúsculas para que coincida con la base de datos.
+      final String roleString = data['rol']?.toLowerCase() ?? '';
 
       switch (roleString) {
         case 'student':
+        case 'estudiante': // Añadido para soportar ambos valores
           return UserRole.student;
         case 'admin':
           return UserRole.admin;
