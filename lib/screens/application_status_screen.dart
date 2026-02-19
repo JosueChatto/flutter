@@ -3,6 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
+
+// Modelo para combinar los datos de la solicitud y su convocatoria
+class ApplicationWithCallDetails {
+  final Map<String, dynamic> applicationData;
+  final Map<String, dynamic> callData;
+
+  ApplicationWithCallDetails({
+    required this.applicationData,
+    required this.callData,
+  });
+}
 
 class ApplicationStatusScreen extends StatefulWidget {
   const ApplicationStatusScreen({super.key});
@@ -12,160 +24,193 @@ class ApplicationStatusScreen extends StatefulWidget {
 }
 
 class _ApplicationStatusScreenState extends State<ApplicationStatusScreen> {
-  late Future<QuerySnapshot> _applicationFuture;
+  late Future<List<ApplicationWithCallDetails>> _applicationsFuture;
 
   @override
   void initState() {
     super.initState();
-    _loadApplicationStatus();
+    _applicationsFuture = _loadUserApplications();
   }
 
-  void _loadApplicationStatus() {
+  Future<List<ApplicationWithCallDetails>> _loadUserApplications() async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      _applicationFuture = FirebaseFirestore.instance
-          .collection('applications')
-          .where('studentID', isEqualTo: user.uid)
-          .limit(1)
-          .get();
-    } else {
-      // Si no hay usuario, creamos un Future que resuelva a un error o a un snapshot vacío.
-      _applicationFuture = Future.value(null);
+    if (user == null) return [];
+
+    // 1. Usar collectionGroup para buscar en todas las subcolecciones 'applicants'
+    final applicationsSnapshot = await FirebaseFirestore.instance
+        .collectionGroup('applicants')
+        .where('studentID', isEqualTo: user.uid)
+        .get();
+
+    if (applicationsSnapshot.docs.isEmpty) {
+      return []; // No hay aplicaciones
     }
+
+    final List<Future<ApplicationWithCallDetails>> futureDetails = [];
+
+    for (final doc in applicationsSnapshot.docs) {
+      final applicationData = doc.data();
+      final callId = applicationData['callId'] as String?;
+
+      if (callId != null) {
+        // 2. Para cada aplicación, buscar los detalles de su convocatoria padre
+        final futureDetail = FirebaseFirestore.instance
+            .collection('scholarship_calls')
+            .doc(callId)
+            .get()
+            .then((callDoc) {
+          final callData = callDoc.exists ? callDoc.data()! : <String, dynamic>{};
+          return ApplicationWithCallDetails(applicationData: applicationData, callData: callData);
+        });
+        futureDetails.add(futureDetail);
+      }
+    }
+    // 3. Esperar a que todas las búsquedas de detalles se completen
+    return await Future.wait(futureDetails);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Estatus de la Solicitud'),
+        title: const Text('Estatus de Mis Solicitudes'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/student-dashboard'),
         ),
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        foregroundColor: Theme.of(context).colorScheme.onSurface,
       ),
-      body: FutureBuilder<QuerySnapshot>(
-        future: _applicationFuture,
+      body: FutureBuilder<List<ApplicationWithCallDetails>>(
+        future: _applicationsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-
-          if (snapshot.hasError || !snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return _buildStatusCard(
-              context,
-              status: 'No Encontrada',
-              title: 'Sin Solicitud Registrada',
-              message: 'Parece que aún no has enviado tu solicitud de beca. Puedes hacerlo desde la opción \"Inscripción a la Beca\" en tu portal.',
-              icon: Icons.search_off_rounded,
-              color: Colors.grey.shade600,
-            );
+          if (snapshot.hasError) {
+            return Center(child: Text('Error al cargar tus solicitudes: ${snapshot.error}'));
+          }
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const _NoApplicationsView(); // Vista para cuando no hay solicitudes
           }
 
-          // Tenemos datos, usamos el primer documento encontrado
-          final applicationData = snapshot.data!.docs.first.data() as Map<String, dynamic>;
-          final status = applicationData['status'] as String? ?? 'En Revisión';
-
-          return _buildStatusView(context, status);
+          final applications = snapshot.data!;
+          return _ApplicationsListView(applications: applications);
         },
       ),
     );
   }
+}
 
-  Widget _buildStatusView(BuildContext context, String status) {
-    String statusTitle, statusMessage;
-    IconData statusIcon;
-    Color statusColor;
+// --- VISTA CUANDO HAY SOLICITUDES ---
+class _ApplicationsListView extends StatelessWidget {
+  final List<ApplicationWithCallDetails> applications;
 
-    switch (status.toLowerCase()) {
-      case 'approved':
-        statusIcon = Icons.check_circle_outline;
-        statusColor = Colors.green.shade700;
-        statusTitle = '¡Beca Aprobada!';
-        statusMessage = '¡Felicidades! Tu solicitud de beca ha sido aceptada. Pronto recibirás un correo con los siguientes pasos y cómo hacer uso de tu beneficio en la cafetería.';
-        break;
-      case 'rejected':
-        statusIcon = Icons.highlight_off_outlined;
-        statusColor = Colors.red.shade700;
-        statusTitle = 'Solicitud Rechazada';
-        statusMessage = 'Lo sentimos, tu solicitud no fue aprobada en esta ocasión. Te invitamos a estar pendiente de futuras convocatorias y verificar que cumplas con todos los criterios.';
-        break;
-      case 'pending':
-      default:
-        statusIcon = Icons.hourglass_empty_outlined;
-        statusColor = Colors.amber.shade800;
-        statusTitle = 'Solicitud en Proceso';
-        statusMessage = 'Hemos recibido tu solicitud y tus documentos. El comité de becas la está revisando. El resultado se publicará en las fechas indicadas en la convocatoria.';
-        break;
-    }
+  const _ApplicationsListView({required this.applications});
 
-    return _buildStatusCard(
-      context,
-      status: status.replaceAll('approved', 'Aprobada').replaceAll('rejected', 'Rechazada').replaceAll('pending', 'En Revisión'),
-      title: statusTitle,
-      message: statusMessage,
-      icon: statusIcon,
-      color: statusColor,
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16.0),
+      itemCount: applications.length,
+      itemBuilder: (context, index) {
+        final item = applications[index];
+        final appData = item.applicationData;
+        final callData = item.callData;
+
+        final status = appData['status'] as String? ?? 'pending';
+        final applicationDate = appData['applicationDate'] as Timestamp?;
+        final formattedDate = applicationDate != null
+            ? DateFormat('dd/MM/yyyy').format(applicationDate.toDate())
+            : 'Fecha no disponible';
+        final callTitle = callData['title'] ?? 'Convocatoria Desconocida';
+
+        final statusInfo = _getStatusInfo(status);
+
+        return Card(
+          elevation: 3,
+          margin: const EdgeInsets.only(bottom: 16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  callTitle,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(statusInfo['icon'], color: statusInfo['color'], size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Estado: ${statusInfo['text']}',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: statusInfo['color'],
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                  ],
+                ),
+                const Divider(height: 24),
+                Text('Fecha de solicitud: $formattedDate', style: Theme.of(context).textTheme.bodyMedium),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildStatusCard(BuildContext context, {required String status, required String title, required String message, required IconData icon, required Color color}) {
+  Map<String, dynamic> _getStatusInfo(String status) {
+    switch (status.toLowerCase()) {
+      case 'approved':
+        return {'text': 'Aprobada', 'color': Colors.green.shade700, 'icon': Icons.check_circle};
+      case 'rejected':
+        return {'text': 'Rechazada', 'color': Colors.red.shade700, 'icon': Icons.cancel};
+      case 'pending':
+      default:
+        return {'text': 'En Revisión', 'color': Colors.amber.shade800, 'icon': Icons.hourglass_empty};
+    }
+  }
+}
+
+// --- VISTA CUANDO NO HAY SOLICITUDES ---
+class _NoApplicationsView extends StatelessWidget {
+  const _NoApplicationsView();
+
+  @override
+  Widget build(BuildContext context) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(20.0),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 500),
-          child: Card(
-            elevation: 8.0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.folder_off_outlined, size: 100, color: Colors.grey),
+            const SizedBox(height: 24),
+            Text(
+              'Aún no has solicitado becas',
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
             ),
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  Icon(icon, size: 80, color: color),
-                  const SizedBox(height: 20),
-                  Text(
-                    title,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: color,
-                        ),
-                  ),
-                  const SizedBox(height: 8),
-                  if (status != 'No Encontrada')
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: color.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      'Estado: $status',
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: color,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    message,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      height: 1.5,
-                    ),
-                  ),
-                ],
+            const SizedBox(height: 12),
+            const Text(
+              '¡Anímate! Revisa las convocatorias disponibles y encuentra la ideal para ti.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16, color: Colors.grey),
+            ),
+            const SizedBox(height: 32),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.search_rounded),
+              label: const Text('Ver Convocatorias Disponibles'),
+              onPressed: () => context.go('/student-dashboard/scholarship-calls'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ),
-          ),
+          ],
         ),
       ),
     );

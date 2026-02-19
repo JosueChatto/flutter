@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -136,6 +135,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     const MaterialColor primarySeedColor = Colors.indigo;
 
+    // --- TEXTO BASE --- 
     final TextTheme appTextTheme = TextTheme(
       displayLarge: GoogleFonts.montserrat(fontSize: 57, fontWeight: FontWeight.bold),
       headlineMedium: GoogleFonts.montserrat(fontSize: 28, fontWeight: FontWeight.w600),
@@ -144,6 +144,7 @@ class MyApp extends StatelessWidget {
       labelLarge: GoogleFonts.roboto(fontSize: 14, fontWeight: FontWeight.w500),
     );
 
+    // --- TEMA CLARO --- 
     final lightTheme = ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
@@ -172,18 +173,40 @@ class MyApp extends StatelessWidget {
       ),
     );
 
+    // --- TEMA OSCURO --- 
+    final darkColorScheme = ColorScheme.fromSeed(
+      seedColor: primarySeedColor,
+      brightness: Brightness.dark,
+      background: const Color(0xFF121212),
+      surface: const Color(0xFF1E1E1E),
+      onSurface: Colors.white, 
+      onBackground: Colors.white,
+      primary: primarySeedColor.shade300,
+      onPrimary: Colors.black,
+    );
+
+    final darkTextTheme = appTextTheme.apply(
+      bodyColor: darkColorScheme.onSurface,
+      displayColor: darkColorScheme.onSurface,
+    );
+
     final darkTheme = ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: primarySeedColor,
-        brightness: Brightness.dark,
-        surface: Colors.grey[900], 
-      ),
-      textTheme: appTextTheme,
+      colorScheme: darkColorScheme,
+      textTheme: darkTextTheme,
+      scaffoldBackgroundColor: darkColorScheme.background,
       appBarTheme: AppBarTheme(
-        backgroundColor: Colors.grey.shade800,
-        foregroundColor: Colors.white,
-        titleTextStyle: GoogleFonts.montserrat(fontSize: 22, fontWeight: FontWeight.bold),
+        backgroundColor: darkColorScheme.surface,
+        foregroundColor: darkColorScheme.onSurface,
+        titleTextStyle: GoogleFonts.montserrat(fontSize: 22, fontWeight: FontWeight.bold, color: darkColorScheme.onSurface),
+      ),
+      cardTheme: CardThemeData(
+        color: darkColorScheme.surface,
+        elevation: 2,
+      ),
+      listTileTheme: ListTileThemeData(
+        iconColor: darkColorScheme.primary,
+        textColor: darkColorScheme.onSurface,
       ),
       inputDecorationTheme: const InputDecorationTheme(
         border: OutlineInputBorder(
@@ -194,8 +217,8 @@ class MyApp extends StatelessWidget {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          foregroundColor: Colors.black,
-          backgroundColor: primarySeedColor.shade200,
+          foregroundColor: darkColorScheme.onPrimary,
+          backgroundColor: darkColorScheme.primary,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           textStyle: GoogleFonts.roboto(fontSize: 16, fontWeight: FontWeight.w500),
