@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -68,7 +67,6 @@ class _ScholarshipApplicationScreenState extends State<ScholarshipApplicationScr
           if (data.containsKey('existingApplication')) {
             return _AlreadyAppliedView(applicationData: data['existingApplication']);
           } else if (data.containsKey('userData')) {
-            // Aquí se llama al widget que faltaba
             return _ApplicationFormView(userData: data['userData'], callId: widget.callId);
           } else {
             return const Center(child: Text('No se pudo verificar tu estado. Intenta más tarde.'));
@@ -86,7 +84,6 @@ class _AlreadyAppliedView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ... (sin cambios en esta vista)
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(20.0),
@@ -115,7 +112,7 @@ class _AlreadyAppliedView extends StatelessWidget {
 }
 
 
-// --- WIDGET DEL FORMULARIO DE APLICACIÓN (EL QUE FALTABA) ---
+// --- WIDGET DEL FORMULARIO DE APLICACIÓN ---
 class _ApplicationFormView extends StatefulWidget {
   final Map<String, dynamic> userData;
   final String callId;
@@ -126,7 +123,7 @@ class _ApplicationFormView extends StatefulWidget {
   State<_ApplicationFormView> createState() => _ApplicationFormViewState();
 }
 
-// --- ESTADO DEL FORMULARIO DE APLICACIÓN (CORREGIDO) ---
+// --- ESTADO DEL FORMULARIO DE APLICACIÓN ---
 class _ApplicationFormViewState extends State<_ApplicationFormView> {
   final _formKey = GlobalKey<FormState>();
   final _reasonsController = TextEditingController();
@@ -201,9 +198,15 @@ class _ApplicationFormViewState extends State<_ApplicationFormView> {
     final theme = Theme.of(context);
     final userData = widget.userData;
     final fullName = ('${userData['name'] ?? ''} ${userData['lastName'] ?? ''}').trim();
-    final semester = userData['semester']?.toString() ?? '[No definido]';
+    
+    // --- CORRECCIÓN DEL BUG ---
+    final semesterValue = userData['semester'];
+    final semester = semesterValue != null ? semesterValue.toString() : '[No definido]';
+
+    final numberControlValue = userData['numberControl'];
+    final numberControl = numberControlValue != null ? numberControlValue.toString() : '[No definido]';
+    
     final career = userData['career']?.toString() ?? '[No definida]';
-    final numberControl = userData['numberControl']?.toString() ?? '[No definido]';
 
     return Form(
       key: _formKey,
@@ -269,11 +272,10 @@ class _ApplicationFormViewState extends State<_ApplicationFormView> {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _controlNumberConfirmationController,
-                  decoration: const InputDecoration( // <-- Se quita el 'const' aquí
+                  decoration: const InputDecoration(
                     labelText: 'Confirmar Número de Control',
                     hintText: 'Ingrese su número de control',
                     border: OutlineInputBorder(),
-                    // ICONO CORREGIDO Y 'const' REMOVIDO DE LA DECORACIÓN
                     prefixIcon: Icon(Icons.verified_user_outlined), 
                   ),
                   keyboardType: TextInputType.number,
