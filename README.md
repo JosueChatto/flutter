@@ -30,7 +30,6 @@ La aplicación se estructura en torno a los siguientes perfiles:
 ### 3. Perfil de Cafetería
 - **Panel de Control (Dashboard):** Funcionalidades específicas para la gestión de becas alimenticias.
   - **Visualizar Reportes:** Muestra una lista en tiempo real de los estudiantes que tienen una beca alimenticia activa.
-  - **Registrar Canje:** Permite al personal marcar cuándo un estudiante ha recibido su beneficio alimenticio, actualizando el estado para evitar duplicados.
 
 ---
 
