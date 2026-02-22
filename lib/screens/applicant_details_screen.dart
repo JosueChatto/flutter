@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
@@ -45,7 +44,6 @@ class _ApplicantDetailsScreenState extends State<ApplicantDetailsScreen> {
         SnackBar(content: Text('Solicitud ${newStatus == 'approved' ? 'aprobada' : 'rechazada'}.')),
       );
       
-      // Regresar a la lista de aplicantes de la convocatoria actual
       if (mounted) {
         context.go('/admin-dashboard/scholarship-applicants/${widget.callId}');
       }
@@ -66,7 +64,6 @@ class _ApplicantDetailsScreenState extends State<ApplicantDetailsScreen> {
         title: const Text('Revisión de Solicitud'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-           // Navegación de vuelta a la lista de aplicantes correcta
           onPressed: () => context.go('/admin-dashboard/scholarship-applicants/${widget.callId}'),
         ),
       ),
@@ -94,17 +91,17 @@ class _ApplicantDetailsScreenState extends State<ApplicantDetailsScreen> {
           final formattedDate = date != null ? DateFormat('dd/MM/yyyy').format(date.toDate()) : 'N/A';
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 100.0), // Padding inferior para botones
+            padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 100.0),
             child: Column(
               children: [
-                _buildDetailCard('Nombre del Estudiante', fullName, Icons.person_outline),
-                 _buildDetailCard('No. de Control', numberControl, Icons.confirmation_number_outlined),
-                _buildDetailCard('Carrera', career, Icons.school_outlined),
-                _buildDetailCard('Semestre', semester, Icons.bar_chart_outlined),
-                _buildDetailCard('Promedio', gpa, Icons.star_border_outlined),
-                _buildDetailCard('Email', email, Icons.email_outlined),
-                _buildDetailCard('Fecha de Solicitud', formattedDate, Icons.calendar_today_outlined),
-                _buildReasonsCard('Motivos de la Solicitud', reasons),
+                _buildDetailCard(context, 'Nombre del Estudiante', fullName, Icons.person_outline),
+                _buildDetailCard(context, 'No. de Control', numberControl, Icons.confirmation_number_outlined),
+                _buildDetailCard(context, 'Carrera', career, Icons.school_outlined),
+                _buildDetailCard(context, 'Semestre', semester, Icons.bar_chart_outlined),
+                _buildDetailCard(context, 'Promedio', gpa, Icons.star_border_outlined),
+                _buildDetailCard(context, 'Email', email, Icons.email_outlined),
+                _buildDetailCard(context, 'Fecha de Solicitud', formattedDate, Icons.calendar_today_outlined),
+                _buildReasonsCard(context, 'Motivos de la Solicitud', reasons),
                 const SizedBox(height: 16),
                 _buildStatusCard(status),
               ],
@@ -112,58 +109,69 @@ class _ApplicantDetailsScreenState extends State<ApplicantDetailsScreen> {
           );
         },
       ),
-       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: _buildActionButtons(status: ( _applicantFuture as Future<DocumentSnapshot<Map<String,dynamic>>>).then((value) => value.data()?['status'] ?? 'pending') ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: FutureBuilder<DocumentSnapshot>(
+        future: _applicantFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
+            final status = (snapshot.data!.data() as Map<String, dynamic>)['status'] ?? 'pending';
+            if (status == 'pending') {
+              return _buildActionButtons();
+            }
+          }
+          return const SizedBox.shrink();
+        },
+      ), 
     );
   }
   
-  Widget _buildActionButtons({required Future<String> status}){
-      return FutureBuilder<String>(
-        future: status,
-        builder: (context, snapshot) {
-          if (snapshot.data == 'pending') {
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () => _updateApplicationStatus('rejected'),
-                      icon: const Icon(Icons.cancel_outlined),
-                      label: const Text('Rechazar'),
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.red.shade700, foregroundColor: Colors.white),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () => _updateApplicationStatus('approved'),
-                      icon: const Icon(Icons.check_circle_outline),
-                      label: const Text('Aprobar'),
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.green.shade700, foregroundColor: Colors.white),
-                    ),
-                  ),
-                ],
+  Widget _buildActionButtons(){
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+        child: Row(
+          children: [
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: () => _updateApplicationStatus('rejected'),
+                icon: const Icon(Icons.cancel_outlined),
+                label: const Text('Rechazar'),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red.shade700, foregroundColor: Colors.white),
               ),
-            );
-          }
-          return const SizedBox.shrink(); // No mostrar botones si no está pendiente
-        },
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: () => _updateApplicationStatus('approved'),
+                icon: const Icon(Icons.check_circle_outline),
+                label: const Text('Aprobar'),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.green.shade700, foregroundColor: Colors.white),
+              ),
+            ),
+          ],
+        ),
       );
   }
 
-  Widget _buildDetailCard(String title, String value, IconData icon) {
+  Widget _buildDetailCard(BuildContext context, String title, String value, IconData icon) {
+     final TextTheme textTheme = Theme.of(context).textTheme;
      return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
         leading: Icon(icon, color: Theme.of(context).colorScheme.primary),
-        title: Text(title, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-        subtitle: Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87)),
+        title: Text(title, style: textTheme.bodySmall?.copyWith(color: Colors.grey.shade500)),
+        subtitle: Text(
+          value,
+          style: textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).colorScheme.onSurface, // Color correcto para el tema
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildReasonsCard(String title, String value) {
+  Widget _buildReasonsCard(BuildContext context, String title, String value) {
+    final TextTheme textTheme = Theme.of(context).textTheme;
     return Card(
        margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
@@ -171,9 +179,9 @@ class _ApplicantDetailsScreenState extends State<ApplicantDetailsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(title, style: textTheme.titleLarge?.copyWith(color: Theme.of(context).colorScheme.onSurface)),
             const Divider(height: 20),
-            Text(value, style: const TextStyle(fontSize: 15, height: 1.5)),
+            Text(value, style: textTheme.bodyMedium?.copyWith(height: 1.5, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8))),
           ],
         ),
       ),

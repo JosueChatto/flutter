@@ -33,12 +33,11 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
     }
 
     try {
-      // La fuente de verdad para los datos del perfil es la colección 'applications'
-      final doc = await FirebaseFirestore.instance.collection('applications').doc(user.uid).get();
+      final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
       if (mounted && doc.exists) {
         final data = doc.data()!;
         setState(() {
-          _studentName = data['studentName'] as String?;
+          _studentName = data['name'] as String?;
           _lastName = data['lastName'] as String?;
           _numberControl = data['numberControl'] as String?;
           _isLoading = false;
@@ -62,14 +61,14 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
     final themeProvider = Provider.of<ThemeProvider>(context);
 
     final List<DashboardItem> items = [
-      DashboardItem(
+       DashboardItem(
         icon: Icons.person_outline,
         title: 'Mi Perfil',
         subtitle: 'Consulta tus datos personales y académicos.',
         onTap: () => context.go('/student-dashboard/profile'),
       ),
       DashboardItem(
-        icon: Icons.playlist_add_check,
+        icon: Icons.check_circle_outline,
         title: 'Estatus de Beca',
         subtitle: 'Revisa si tu solicitud fue aceptada.',
         onTap: () => context.go('/student-dashboard/application-status'),
@@ -77,13 +76,13 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
       DashboardItem(
         icon: Icons.article_outlined,
         title: 'Inscripción a la Beca',
-        subtitle: 'Selecciona una convocatoria y aplica.', // Subtítulo actualizado
-        onTap: () => context.go('/student-dashboard/scholarship-calls'), // <- Ruta actualizada
+        subtitle: 'Selecciona una convocatoria y aplica.',
+        onTap: () => context.go('/student-dashboard/scholarship-calls'),
       ),
       DashboardItem(
         icon: Icons.info_outline,
         title: 'Información de Convocatorias',
-        subtitle: 'Conoce los detalles y requisitos.',
+        subtitle: 'Conoce los detalles y requisitos de las becas.',
         onTap: () => context.go('/student-dashboard/scholarship-info'),
       ),
     ];

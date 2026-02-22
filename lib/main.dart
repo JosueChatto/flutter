@@ -10,7 +10,7 @@ import 'screens/login_screen.dart';
 import 'screens/student_dashboard_screen.dart';
 import 'screens/admin_dashboard_screen.dart';
 import 'screens/cafeteria_dashboard_screen.dart';
-import 'screens/student_profile_screen.dart';
+import 'screens/profile_screen.dart';
 import 'screens/application_status_screen.dart';
 import 'screens/scholarship_application_screen.dart';
 import 'screens/scholarship_info_screen.dart';      
@@ -60,7 +60,7 @@ final GoRouter _router = GoRouter(
       routes: <RouteBase>[
         GoRoute(
           path: 'profile',
-          builder: (BuildContext context, GoRouterState state) => const StudentProfileScreen(),
+          builder: (BuildContext context, GoRouterState state) => const ProfileScreen(),
         ),
         GoRoute(
           path: 'application-status',
@@ -84,43 +84,44 @@ final GoRouter _router = GoRouter(
       ],
     ),
     GoRoute(
-        path: '/admin-dashboard',
-        builder: (BuildContext context, GoRouterState state) => const AdminDashboardScreen(),
-        routes: [
-          GoRoute(
-            path: 'admin-scholarship-calls',
-            builder: (BuildContext context, GoRouterState state) => const AdminScholarshipCallsScreen(),
-            routes: [
-                 GoRoute(
-                    path: ':callId/applicant-details/:applicantId',
-                    builder: (context, state) {
-                      final callId = state.pathParameters['callId']!;
-                      final applicantId = state.pathParameters['applicantId']!;
-                      return ApplicantDetailsScreen(callId: callId, applicantId: applicantId);
-                    }
-                  ),
-            ]
-          ),
-          GoRoute(
-            path: 'scholarship-applicants/:callId',
-            builder: (BuildContext context, GoRouterState state) {
-              final callId = state.pathParameters['callId']!;
-              return ScholarshipApplicantsScreen(callId: callId);
-            },
-          ),
-          GoRoute(
-            path: 'create-scholarship-call',
-            builder: (BuildContext context, GoRouterState state) => const CreateScholarshipCallScreen(),
-          ),
-          GoRoute(
-            path: 'accepted-list',
-            builder: (BuildContext context, GoRouterState state) => const AcceptedListScreen(),
-          ),
-          GoRoute(
-            path: 'settings', 
-            builder: (BuildContext context, GoRouterState state) => const AdminSettingsScreen(),
-          ),
-        ]),
+      path: '/admin-dashboard',
+      builder: (BuildContext context, GoRouterState state) => const AdminDashboardScreen(),
+      routes: [
+        GoRoute(
+          path: 'admin-scholarship-calls',
+          builder: (BuildContext context, GoRouterState state) => const AdminScholarshipCallsScreen(),
+        ),
+        GoRoute(
+          path: 'scholarship-applicants/:callId',
+          builder: (BuildContext context, GoRouterState state) {
+            final callId = state.pathParameters['callId']!;
+            return ScholarshipApplicantsScreen(callId: callId);
+          },
+          routes: [
+            GoRoute(
+              path: 'applicant-details/:applicantId',
+              builder: (context, state) {
+                final callId = state.pathParameters['callId']!;
+                final applicantId = state.pathParameters['applicantId']!;
+                return ApplicantDetailsScreen(callId: callId, applicantId: applicantId);
+              },
+            ),
+          ],
+        ),
+        GoRoute(
+          path: 'create-scholarship-call',
+          builder: (BuildContext context, GoRouterState state) => const CreateScholarshipCallScreen(),
+        ),
+        GoRoute(
+          path: 'accepted-list',
+          builder: (BuildContext context, GoRouterState state) => const AcceptedListScreen(),
+        ),
+        GoRoute(
+          path: 'settings', 
+          builder: (BuildContext context, GoRouterState state) => const AdminSettingsScreen(),
+        ),
+      ],
+    ),
     GoRoute(
       path: '/cafeteria-dashboard',
       builder: (BuildContext context, GoRouterState state) => const CafeteriaDashboardScreen(),
@@ -194,19 +195,20 @@ class MyApp extends StatelessWidget {
       useMaterial3: true,
       colorScheme: darkColorScheme,
       textTheme: darkTextTheme,
-      scaffoldBackgroundColor: darkColorScheme.background,
+      scaffoldBackgroundColor: darkColorScheme.surface,
       appBarTheme: AppBarTheme(
         backgroundColor: darkColorScheme.surface,
         foregroundColor: darkColorScheme.onSurface,
         titleTextStyle: GoogleFonts.montserrat(fontSize: 22, fontWeight: FontWeight.bold, color: darkColorScheme.onSurface),
       ),
       cardTheme: CardThemeData(
-        color: darkColorScheme.surface,
+        color: const Color(0xFF2A2A2A), // Color de tarjeta ligeramente más claro
         elevation: 2,
       ),
       listTileTheme: ListTileThemeData(
         iconColor: darkColorScheme.primary,
         textColor: darkColorScheme.onSurface,
+        tileColor: const Color(0xFF2A2A2A), // Mismo color para ListTiles dentro de tarjetas
       ),
       inputDecorationTheme: const InputDecorationTheme(
         border: OutlineInputBorder(

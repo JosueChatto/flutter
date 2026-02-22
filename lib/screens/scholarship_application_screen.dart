@@ -8,42 +8,45 @@ class ScholarshipApplicationScreen extends StatefulWidget {
   const ScholarshipApplicationScreen({super.key, required this.callId});
 
   @override
-  State<ScholarshipApplicationScreen> createState() => _ScholarshipApplicationScreenState();
+  State<ScholarshipApplicationScreen> createState() =>
+      _ScholarshipApplicationScreenState();
 }
 
-class _ScholarshipApplicationScreenState extends State<ScholarshipApplicationScreen> {
-  late Future<Map<String, dynamic>?> _initialDataFuture;
+class _ScholarshipApplicationScreenState
+    extends State<ScholarshipApplicationScreen> {
+  Stream<DocumentSnapshot>? _applicationStream;
 
   @override
   void initState() {
     super.initState();
-    _initialDataFuture = _fetchInitialData();
+    _setupStream();
   }
 
-  Future<Map<String, dynamic>?> _fetchInitialData() async {
+  void _setupStream() {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return null;
-
-    final applicationQuery = await FirebaseFirestore.instance
-        .collection('scholarship_calls')
-        .doc(widget.callId)
-        .collection('applicants')
-        .doc(user.uid)
-        .get();
-
-    if (applicationQuery.exists) {
-      return {'existingApplication': applicationQuery.data()};
-    } else {
-      final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
-      if (userDoc.exists) {
-        return {'userData': userDoc.data()};
-      }
+    if (user != null) {
+      setState(() {
+        _applicationStream = FirebaseFirestore.instance
+            .collection('scholarship_calls')
+            .doc(widget.callId)
+            .collection('applicants')
+            .doc(user.uid)
+            .snapshots();
+      });
     }
-    return null;
   }
 
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Solicitud de Beca')),
+        body: const Center(child: Text('Usuario no autenticado.')),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Solicitud de Beca'),
@@ -52,56 +55,102 @@ class _ScholarshipApplicationScreenState extends State<ScholarshipApplicationScr
           onPressed: () => context.go('/student-dashboard/scholarship-calls'),
         ),
       ),
-      body: FutureBuilder<Map<String, dynamic>?>(
-        future: _initialDataFuture,
+      body: StreamBuilder<DocumentSnapshot>(
+        stream: _applicationStream,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
-            return const Center(child: Text('Error: No se pudieron cargar los datos.'));
+          if (snapshot.hasError) {
+            return Center(
+                child: Text('Error al cargar la solicitud: ${snapshot.error}'));
+          }
+          if (!snapshot.hasData || !snapshot.data!.exists) {
+            // No ha aplicado, mostramos el formulario
+            return _ApplicationFormLoader(callId: widget.callId);
           }
 
-          final data = snapshot.data!;
-
-          if (data.containsKey('existingApplication')) {
-            return _AlreadyAppliedView(applicationData: data['existingApplication']);
-          } else if (data.containsKey('userData')) {
-            return _ApplicationFormView(userData: data['userData'], callId: widget.callId);
-          } else {
-            return const Center(child: Text('No se pudo verificar tu estado. Intenta más tarde.'));
-          }
+          // Ya aplicó, mostramos el estado
+          final applicationData =
+              snapshot.data!.data() as Map<String, dynamic>;
+          return _AlreadyAppliedView(applicationData: applicationData);
         },
       ),
     );
   }
 }
 
-// VISTA PARA CUANDO EL USUARIO YA APLICÓ
+
+// WIDGET QUE MUESTRA EL ESTADO (SI YA APLICÓ)
 class _AlreadyAppliedView extends StatelessWidget {
   final Map<String, dynamic> applicationData;
   const _AlreadyAppliedView({required this.applicationData});
 
   @override
   Widget build(BuildContext context) {
+    final status = applicationData['status'] as String? ?? 'pending';
+
+    String title;
+    String subtitle;
+    IconData iconData;
+    Color color;
+
+    switch (status) {
+      case 'accepted':
+        title = '¡Solicitud Aceptada!';
+        subtitle =
+            'Felicidades, tu beca ha sido aprobada. Consulta los siguientes pasos en la coordinación.';
+        iconData = Icons.check_circle_outline_rounded;
+        color = Colors.green.shade700;
+        break;
+      case 'rejected':
+        title = 'Solicitud Rechazada';
+        subtitle =
+            'Lamentamos informarte que tu solicitud no fue aceptada en esta ocasión.';
+        iconData = Icons.highlight_off_rounded;
+        color = Colors.red.shade700;
+        break;
+      case 'pending':
+      default:
+        title = 'Solicitud en Proceso';
+        subtitle =
+            'Ya has aplicado a esta convocatoria. Tu solicitud está en revisión.';
+        iconData = Icons.hourglass_empty_outlined;
+        color = Colors.amber.shade800;
+        break;
+    }
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Card(
           elevation: 4.0,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
           child: Padding(
             padding: const EdgeInsets.all(24.0),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                Icon(Icons.hourglass_empty_outlined, size: 60, color: Colors.amber.shade800),
+                Icon(iconData, size: 60, color: color),
                 const SizedBox(height: 20),
-                Text('Solicitud en Proceso', textAlign: TextAlign.center, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, color: Colors.amber.shade800)),
+                Text(title,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context)
+                        .textTheme
+                        .headlineSmall
+                        ?.copyWith(fontWeight: FontWeight.bold, color: color)),
                 const SizedBox(height: 12),
-                Text('Ya has aplicado a esta convocatoria. Tu solicitud está en revisión.', textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.5)),
+                Text(subtitle,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyLarge
+                        ?.copyWith(height: 1.5)),
                 const SizedBox(height: 24),
-                ElevatedButton(onPressed: () => context.go('/student-dashboard'), child: const Text('Volver al Inicio'))
+                ElevatedButton(
+                    onPressed: () => context.go('/student-dashboard'),
+                    child: const Text('Volver al Inicio'))
               ],
             ),
           ),
@@ -111,8 +160,35 @@ class _AlreadyAppliedView extends StatelessWidget {
   }
 }
 
+// WIDGET INTERMEDIO PARA CARGAR LOS DATOS DEL USUARIO PARA EL FORMULARIO
+class _ApplicationFormLoader extends StatelessWidget {
+  final String callId;
+  const _ApplicationFormLoader({required this.callId});
 
-// --- WIDGET DEL FORMULARIO DE APLICACIÓN ---
+  @override
+  Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return const Center(child: Text("Error de autenticación."));
+    }
+    return FutureBuilder<DocumentSnapshot>(
+      future: FirebaseFirestore.instance.collection('users').doc(user.uid).get(),
+      builder: (context, userSnapshot) {
+        if (userSnapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (!userSnapshot.hasData || !userSnapshot.data!.exists) {
+          return const Center(child: Text("No se encontró tu perfil de usuario."));
+        }
+        final userData = userSnapshot.data!.data() as Map<String, dynamic>;
+        return _ApplicationFormView(userData: userData, callId: callId);
+      },
+    );
+  }
+}
+
+
+// WIDGET DEL FORMULARIO DE APLICACIÓN
 class _ApplicationFormView extends StatefulWidget {
   final Map<String, dynamic> userData;
   final String callId;
@@ -123,7 +199,6 @@ class _ApplicationFormView extends StatefulWidget {
   State<_ApplicationFormView> createState() => _ApplicationFormViewState();
 }
 
-// --- ESTADO DEL FORMULARIO DE APLICACIÓN ---
 class _ApplicationFormViewState extends State<_ApplicationFormView> {
   final _formKey = GlobalKey<FormState>();
   final _reasonsController = TextEditingController();
@@ -146,17 +221,24 @@ class _ApplicationFormViewState extends State<_ApplicationFormView> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Confirmar Envío'),
-        content: const Text('Una vez confirmada la solicitud, no se podrán realizar cambios. ¿Deseas continuar?'),
+        content: const Text(
+            'Una vez confirmada la solicitud, no se podrán realizar cambios. ¿Deseas continuar?'),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancelar')),
-          FilledButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Confirmar y Enviar')),
+          TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancelar')),
+          FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Confirmar y Enviar')),
         ],
       ),
     );
 
     if (confirmed != true) return;
 
-    setState(() { _isSubmitting = true; });
+    setState(() {
+      _isSubmitting = true;
+    });
 
     final user = FirebaseAuth.instance.currentUser!;
     try {
@@ -165,11 +247,11 @@ class _ApplicationFormViewState extends State<_ApplicationFormView> {
         'studentName': widget.userData['name'] ?? 'N/A',
         'lastName': widget.userData['lastName'] ?? '',
         'career': widget.userData['career'] ?? 'N/A',
-        'semester': widget.userData['semester'],
-        'gpa': widget.userData['gpa'],
+        'semester': widget.userData['semester'] ?? 0,
+        'gpa': widget.userData['gpa'] ?? 0.0,
         'email': user.email,
-        'numberControl': widget.userData['numberControl'],
-        'numberPhone': widget.userData['numberPhone'],
+        'numberControl': widget.userData['numberControl'] ?? 'N/A',
+        'numberPhone': widget.userData['numberPhone'] ?? 'N/A',
         'status': 'pending',
         'applicationDate': FieldValue.serverTimestamp(),
         'reasons': _reasonsController.text.trim(),
@@ -183,13 +265,18 @@ class _ApplicationFormViewState extends State<_ApplicationFormView> {
           .doc(user.uid)
           .set(dataToSave);
 
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('¡Solicitud enviada con éxito!')));
-      await Future.delayed(const Duration(seconds: 1));
-      if (mounted) context.go('/student-dashboard');
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('¡Solicitud enviada con éxito!')));
+      // No se necesita delay, el StreamBuilder actualizará la UI
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error al enviar la solicitud: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al enviar la solicitud: $e')));
     } finally {
-      if (mounted) setState(() { _isSubmitting = false; });
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
     }
   }
 
@@ -199,7 +286,6 @@ class _ApplicationFormViewState extends State<_ApplicationFormView> {
     final userData = widget.userData;
     final fullName = ('${userData['name'] ?? ''} ${userData['lastName'] ?? ''}').trim();
     
-    // --- CORRECCIÓN DEL BUG ---
     final semesterValue = userData['semester'];
     final semester = semesterValue != null ? semesterValue.toString() : '[No definido]';
 

@@ -66,13 +66,13 @@ class CafeteriaDashboardScreen extends StatelessWidget {
       ),
       body: SingleChildScrollView(
         scrollDirection: Axis.vertical,
-        child: Container(
+        child: SizedBox(
           width: double.infinity,
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: DataTable(
               columnSpacing: 20,
-              headingRowColor: MaterialStateProperty.all(Theme.of(context).colorScheme.primary.withOpacity(0.1)),
+              headingRowColor: WidgetStateProperty.all(Theme.of(context).colorScheme.primary.withOpacity(0.1)),
               columns: const [
                 DataColumn(label: Text('ID Reporte')),
                 DataColumn(label: Text('No. Control')),

@@ -17,7 +17,6 @@ class _ScholarshipApplicantsScreenState extends State<ScholarshipApplicantsScree
   @override
   void initState() {
     super.initState();
-    // Cargar los detalles de la convocatoria una vez para obtener el título
     _callDetailsFuture = FirebaseFirestore.instance.collection('scholarship_calls').doc(widget.callId).get();
   }
 
@@ -41,7 +40,6 @@ class _ScholarshipApplicantsScreenState extends State<ScholarshipApplicantsScree
         ),
       ),
       body: StreamBuilder<QuerySnapshot>(
-        // Stream actualizado para leer desde la sub-colección de la convocatoria
         stream: FirebaseFirestore.instance.collection('scholarship_calls').doc(widget.callId).collection('applicants').snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -103,13 +101,8 @@ class _ScholarshipApplicantsScreenState extends State<ScholarshipApplicantsScree
                   subtitle: Text(career),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                   onTap: () {
-                    // Navegar a los detalles, pasando ambos IDs necesarios
                     context.go(
-                      '/admin-dashboard/scholarship-applicants/${widget.callId}/applicant-details',
-                      extra: {
-                        'callId': widget.callId,
-                        'applicantId': application.id, 
-                      },
+                      '/admin-dashboard/scholarship-applicants/${widget.callId}/applicant-details/${application.id}',
                     );
                   },
                 ),
