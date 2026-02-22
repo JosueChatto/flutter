@@ -1,4 +1,3 @@
-
 # Blueprint de la Aplicación de Gestión de Becas AMOBECAL
 
 ## Descripción General
@@ -39,33 +38,35 @@ La aplicación ofrece una experiencia de usuario fluida y moderna, con un diseñ
 
 ---
 
-## Funcionalidades Implementadas (Diseño de UI)
+## Funcionalidades Implementadas
 
 ### Perfil de Estudiante
 
 - **Autenticación:** Pantalla de inicio de sesión para acceder al perfil.
-- **Panel de Control (Dashboard):** Interfaz limpia basada en una lista con: "Mi Perfil", "Estado de Solicitud", "Aplicar a Beca" e "Información de Beca".
+- **Panel de Control (Dashboard):** Interfaz limpia con acceso a las funciones principales del estudiante.
+- **Perfil de Usuario Detallado:** La pantalla "Mi Perfil" ha sido rediseñada para mostrar una vista completa de la información del estudiante, obtenida directamente desde Firestore. Los datos se organizan en dos secciones claras:
+    - **Información Personal:** Nombre, apellidos, género, teléfono y correo.
+    - **Información Académica:** Número de control, carrera, semestre y promedio (GPA).
 
 ### Perfil de Administrador
 
-- **Panel de Control (Dashboard):** Panel de gestión con acceso a: "Ver Solicitudes", "Crear Nueva Convocatoria", "Lista de Aceptados" y "Configuración".
+- **Panel Personalizado:** El panel de administración ahora muestra el cargo específico del usuario (ej. "Director Prueba") debajo del título principal, proporcionando una experiencia más personalizada.
+- **Gestión de Convocatorias:** Acceso a la gestión integral de convocatorias.
+- **Lista de Aceptados con Búsqueda y Filtros:**
+    - La sección "Lista de Aceptados" ha sido transformada en una herramienta de consulta avanzada.
+    - **Búsqueda en Tiempo Real:** Incluye una barra de búsqueda para encontrar estudiantes instantáneamente por nombre, apellido o número de control.
+    - **Filtros Dinámicos:** Se han añadido menús desplegables para filtrar la lista de estudiantes aceptados por **carrera, género y semestre**.
+    - La lista se actualiza automáticamente a medida que el administrador escribe o selecciona los filtros.
 
 ### Perfil de Cafetería
 
-- **Panel de Control (Dashboard):** Interfaz de solo visualización que presenta un "Reporte de Becados" en formato de tabla.
+- **Panel Personalizado:** Al igual que el de administrador, el panel de cafetería ahora muestra un nombre identificativo (ej. "Cafetería Principal") para personalizar la interfaz.
+- **Reporte de Becados:** Presenta un reporte de los estudiantes becados en un formato de tabla claro y legible.
 
 ---
 
 ## Arquitectura y Diseño
 
-- **Gestión de Estado:** Se utiliza `provider` para el manejo del tema (claro/oscuro).
+- **Gestión de Estado:** Se utiliza `provider` para el manejo del tema (claro/oscuro) y `StatefulWidget` para estados locales en pantallas con interacción compleja (como filtros).
 - **Enrutamiento:** La navegación se gestiona con `go_router`.
-- **Diseño de Interfaz:** Tema basado en `Colors.indigo` con tipografía de `google_fonts`. Componentes `Card`, `ListTile` y `DataTable`.
-
----
-
-## Plan de Desarrollo Futuro
-
-1.  **Conexión Frontend-Backend:** Conectar las pantallas de la aplicación Flutter a los datos que acabamos de crear en Cloud Firestore.
-2.  **Desarrollo de Funcionalidades:** Implementar la lógica para las pantallas que aún son marcadores de posición (ej. formularios de solicitud, perfiles detallados, etc.).
-3.  **Funcionalidad de Notificaciones:** Añadir notificaciones push para informar a los usuarios sobre el estado de sus solicitudes.
+- **Diseño de Interfaz:** Tema basado en `Colors.indigo` con tipografía de `google_fonts`. Componentes `Card`, `ListTile`, `DataTable`, `TextField` y `DropdownButton`.

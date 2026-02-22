@@ -18,6 +18,8 @@ import 'screens/scholarship_applicants_screen.dart';
 import 'screens/applicant_details_screen.dart';
 import 'screens/create_scholarship_call_screen.dart';
 import 'screens/accepted_list_screen.dart';
+// --- IMPORTACIÓN AÑADIDA ---
+import 'screens/accepted_students_per_call_screen.dart'; 
 import 'screens/admin_settings_screen.dart';
 import 'screens/scholarship_calls_list_screen.dart';
 import 'screens/admin_scholarship_calls_screen.dart';
@@ -115,6 +117,16 @@ final GoRouter _router = GoRouter(
         GoRoute(
           path: 'accepted-list',
           builder: (BuildContext context, GoRouterState state) => const AcceptedListScreen(),
+          // --- RUTA AÑADIDA PARA EL DETALLE ---
+          routes: [
+            GoRoute(
+              path: ':callId',
+              builder: (context, state) {
+                final callId = state.pathParameters['callId']!;
+                return AcceptedStudentsPerCallScreen(callId: callId);
+              },
+            )
+          ],
         ),
         GoRoute(
           path: 'settings', 

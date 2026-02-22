@@ -1,7 +1,7 @@
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import '../main.dart'; // Para acceder a ThemeProvider
 
@@ -28,8 +28,37 @@ class ScholarshipReport {
   });
 }
 
-class CafeteriaDashboardScreen extends StatelessWidget {
+class CafeteriaDashboardScreen extends StatefulWidget {
   const CafeteriaDashboardScreen({super.key});
+
+  @override
+  State<CafeteriaDashboardScreen> createState() => _CafeteriaDashboardScreenState();
+}
+
+class _CafeteriaDashboardScreenState extends State<CafeteriaDashboardScreen> {
+  String? _cafeteriaName;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCafeteriaInfo();
+  }
+
+  Future<void> _loadCafeteriaInfo() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+        if (mounted && userDoc.exists) {
+          setState(() {
+            _cafeteriaName = userDoc.data()?['nameCafeteria'];
+          });
+        }
+      } catch (e) {
+        // Manejar error si es necesario
+      }
+    }
+  }
 
   Future<void> _signOut(BuildContext context) async {
     await FirebaseAuth.instance.signOut();
@@ -50,7 +79,19 @@ class CafeteriaDashboardScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Reporte de Becados'),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Reporte de Becados'),
+            if (_cafeteriaName != null)
+              Text(
+                _cafeteriaName!,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).appBarTheme.foregroundColor?.withOpacity(0.8),
+                    ),
+              ),
+          ],
+        ),
         actions: [
           IconButton(
             icon: Icon(themeProvider.themeMode == ThemeMode.dark ? Icons.light_mode : Icons.dark_mode),
