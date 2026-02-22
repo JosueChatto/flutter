@@ -1,38 +1,108 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:go_router/go_router.dart';
+
+// Widget para mostrar la información de cada estudiante, manejando la carga de datos del usuario.
+class StudentInfoTile extends StatelessWidget {
+  final Map<String, dynamic> applicantData;
+  final String callId; // Se necesita para la navegación
+
+  const StudentInfoTile({
+    super.key,
+    required this.applicantData,
+    required this.callId,
+  });
+
+  Future<DocumentSnapshot> _getUserData() {
+    final userId = applicantData['userId'];
+    if (userId == null) {
+      return Future.error('UserID no encontrado en la solicitud.');
+    }
+    return FirebaseFirestore.instance.collection('users').doc(userId).get();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<DocumentSnapshot>(
+      future: _getUserData(),
+      builder: (context, userSnapshot) {
+        String nameToShow;
+        if (userSnapshot.connectionState == ConnectionState.waiting) {
+          nameToShow = 'Cargando nombre...';
+        } else if (userSnapshot.hasError || !userSnapshot.hasData || !userSnapshot.data!.exists) {
+          nameToShow = 'Estudiante no encontrado';
+        } else {
+          final userData = userSnapshot.data!.data() as Map<String, dynamic>;
+          nameToShow = '${userData['name'] ?? ''} ${userData['lastName'] ?? ''}'.trim();
+        }
+
+        return _buildTile(
+          context,
+          name: nameToShow,
+          controlNumber: applicantData['numberControl'],
+          career: applicantData['career'],
+        );
+      },
+    );
+  }
+
+  Widget _buildTile(BuildContext context, {required String name, String? controlNumber, String? career}) {
+    final applicantId = applicantData['docId']; // El ID del documento del aplicante
+
+    return Card(
+      elevation: 3,
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.all(16),
+        leading: CircleAvatar(
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          child: const Icon(Icons.person, color: Colors.white),
+        ),
+        title: Text(
+          name,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 4),
+            Text('No. Control: ${controlNumber ?? 'N/A'}'),
+            if (career != null) ...[
+              const SizedBox(height: 2),
+              Text('Carrera: $career'),
+            ],
+          ],
+        ),
+        trailing: const Icon(Icons.arrow_forward_ios),
+        onTap: () {
+          // <<< ACCIÓN DE NAVEGACIÓN >>>
+          if (applicantId != null) {
+            context.go('/admin-dashboard/accepted-list/$callId/$applicantId');
+          } else {
+             ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Error: No se pudo encontrar el ID del estudiante.')),
+              );
+          }
+        },
+      ),
+    );
+  }
+}
 
 class AcceptedStudentsPerCallScreen extends StatefulWidget {
   final String callId;
   const AcceptedStudentsPerCallScreen({super.key, required this.callId});
 
   @override
-  State<AcceptedStudentsPerCallScreen> createState() =>
-      _AcceptedStudentsPerCallScreenState();
+  State<AcceptedStudentsPerCallScreen> createState() => _AcceptedStudentsPerCallScreenState();
 }
 
 class _AcceptedStudentsPerCallScreenState extends State<AcceptedStudentsPerCallScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-  String? _selectedCareer;
-  String? _selectedGender;
-  int? _selectedSemester;
-
-  final List<String> _careers = [
-    'Ingenieria en Inteligencia Artificial',
-    'Ingenieria en Sistemas Computacionales',
-    'Ingenieria Mecatronica',
-    'Ingenieria Industrial',
-    'Ingenieria Informatica',
-    'Ingenieria en Gestion Empresarial',
-    'Ingenieria Ambiental',
-    'Ingenieria Bioquimica',
-    'Arquitectura',
-    'Licenciatura en Administracion',
-    'Contador Publico',
-  ];
-
-  final List<String> _genders = ['Hombre', 'Mujer'];
-  final List<int> _semesters = List.generate(12, (i) => i + 1);
 
   @override
   void initState() {
@@ -59,7 +129,6 @@ class _AcceptedStudentsPerCallScreenState extends State<AcceptedStudentsPerCallS
       body: Column(
         children: [
           _buildSearchBar(),
-          _buildFilterBar(),
           _buildStudentList(),
         ],
       ),
@@ -72,76 +141,13 @@ class _AcceptedStudentsPerCallScreenState extends State<AcceptedStudentsPerCallS
       child: TextField(
         controller: _searchController,
         decoration: InputDecoration(
-          hintText: 'Buscar por nombre o No. Control...',
+          hintText: 'Buscar por No. Control...',
           prefixIcon: const Icon(Icons.search),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
           filled: true,
-          fillColor: Theme.of(context).colorScheme.surfaceVariant,
+          fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
         ),
       ),
-    );
-  }
-
-  Widget _buildFilterBar() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-      child: Wrap(
-        spacing: 8.0,
-        runSpacing: 4.0,
-        children: [
-          _buildDropdownFilter<String>(
-            hint: 'Carrera',
-            value: _selectedCareer,
-            items: _careers,
-            onChanged: (value) {
-              setState(() {
-                _selectedCareer = value;
-              });
-            },
-          ),
-          _buildDropdownFilter<String>(
-            hint: 'Género',
-            value: _selectedGender,
-            items: _genders,
-            onChanged: (value) {
-              setState(() {
-                _selectedGender = value;
-              });
-            },
-          ),
-          _buildDropdownFilter<int>(
-            hint: 'Semestre',
-            value: _selectedSemester,
-            items: _semesters,
-            onChanged: (value) {
-              setState(() {
-                _selectedSemester = value;
-              });
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDropdownFilter<T>({
-    required String hint,
-    T? value,
-    required List<T> items,
-    required ValueChanged<T?> onChanged,
-  }) {
-    return DropdownButton<T>(
-      hint: Text(hint),
-      value: value,
-      onChanged: onChanged,
-      items: items.map<DropdownMenuItem<T>>((T item) {
-        return DropdownMenuItem<T>(
-          value: item,
-          child: Text(item.toString()),
-        );
-      }).toList(),
     );
   }
 
@@ -166,65 +172,29 @@ class _AcceptedStudentsPerCallScreenState extends State<AcceptedStudentsPerCallS
           }
 
           var students = snapshot.data!.docs.map((doc) {
-            return {'id': doc.id, 'data': doc.data() as Map<String, dynamic>};
+            final data = doc.data() as Map<String, dynamic>;
+            // Añadimos el ID del documento del aplicante para la navegación
+            data['docId'] = doc.id;
+            return data;
           }).toList();
 
-          // Aplicar filtros
           final filteredStudents = students.where((student) {
-            // AQUÍ ESTÁ LA CORRECCIÓN
-            final data = student['data']! as Map<String, dynamic>;
-            final fullName = '${data['name'] ?? ''} ${data['lastName'] ?? ''}'.toLowerCase();
-            final numberControl = (data['numberControl'] ?? '').toLowerCase();
-
-            final searchMatch = _searchQuery.isEmpty ||
-                fullName.contains(_searchQuery) ||
-                numberControl.contains(_searchQuery);
-            
-            final careerMatch = _selectedCareer == null || data['career'] == _selectedCareer;
-            final genderMatch = _selectedGender == null || data['gender'] == _selectedGender;
-            final semesterMatch = _selectedSemester == null || data['semester'] == _selectedSemester;
-
-            return searchMatch && careerMatch && genderMatch && semesterMatch;
+            final numberControl = (student['numberControl'] ?? '').toLowerCase();
+            return _searchQuery.isEmpty || numberControl.contains(_searchQuery);
           }).toList();
 
           if (filteredStudents.isEmpty) {
-            return _buildEmptyState('No se encontraron estudiantes con los filtros aplicados.');
+            return _buildEmptyState('No se encontraron estudiantes.');
           }
 
           return ListView.builder(
             padding: const EdgeInsets.all(12.0),
             itemCount: filteredStudents.length,
             itemBuilder: (context, index) {
-              // Y AQUÍ TAMBIÉN PARA ASEGURAR
-              final studentData = filteredStudents[index]['data']! as Map<String, dynamic>;
-              final fullName = '${studentData['name'] ?? ''} ${studentData['lastName'] ?? ''}'.trim();
-
-              return Card(
-                elevation: 3,
-                margin: const EdgeInsets.symmetric(vertical: 8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: ListTile(
-                  contentPadding: const EdgeInsets.all(16),
-                  leading: CircleAvatar(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    child: const Icon(Icons.person, color: Colors.white),
-                  ),
-                  title: Text(
-                    fullName,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 4),
-                      Text('No. Control: ${studentData['numberControl'] ?? 'N/A'}'),
-                      const SizedBox(height: 2),
-                      Text('Carrera: ${studentData['career'] ?? 'N/A'}'),
-                    ],
-                  ),
-                ),
+              final studentData = filteredStudents[index];
+              return StudentInfoTile(
+                applicantData: studentData,
+                callId: widget.callId, // Pasamos el callId al Tile
               );
             },
           );

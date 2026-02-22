@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:intl/date_symbol_data_local.dart'; // Import para inicialización de locale
 import 'firebase_options.dart';
 
 import 'services/auth_service.dart';
@@ -13,27 +14,30 @@ import 'screens/cafeteria_dashboard_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/application_status_screen.dart';
 import 'screens/scholarship_application_screen.dart';
-import 'screens/scholarship_info_screen.dart';      
+import 'screens/scholarship_info_screen.dart';
 import 'screens/scholarship_applicants_screen.dart';
 import 'screens/applicant_details_screen.dart';
 import 'screens/create_scholarship_call_screen.dart';
 import 'screens/accepted_list_screen.dart';
-// --- IMPORTACIÓN AÑADIDA ---
-import 'screens/accepted_students_per_call_screen.dart'; 
+import 'screens/accepted_students_per_call_screen.dart';
+import 'screens/accepted_student_details_screen.dart';
 import 'screens/admin_settings_screen.dart';
 import 'screens/scholarship_calls_list_screen.dart';
 import 'screens/admin_scholarship_calls_screen.dart';
 
-void main() async { 
-  WidgetsFlutterBinding.ensureInitialized(); 
-  await Firebase.initializeApp( 
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  // <<< INICIO DE LA CORRECCIÓN >>>
+  await initializeDateFormatting('es_ES', null); // Inicializa los datos de localización para español
+  // <<< FIN DE LA CORRECCIÓN >>>
   runApp(
-    MultiProvider( 
+    MultiProvider(
       providers: [
-        Provider<AuthService>(create: (_) => AuthService()), 
-        ChangeNotifierProvider(create: (context) => ThemeProvider()), 
+        Provider<AuthService>(create: (_) => AuthService()),
+        ChangeNotifierProvider(create: (context) => ThemeProvider()),
       ],
       child: const MyApp(),
     ),
@@ -58,36 +62,41 @@ final GoRouter _router = GoRouter(
     ),
     GoRoute(
       path: '/student-dashboard',
-      builder: (BuildContext context, GoRouterState state) => const StudentDashboardScreen(),
+      builder: (BuildContext context, GoRouterState state) =>
+          const StudentDashboardScreen(),
       routes: <RouteBase>[
         GoRoute(
           path: 'profile',
-          builder: (BuildContext context, GoRouterState state) => const ProfileScreen(),
+          builder: (BuildContext context, GoRouterState state) =>
+              const ProfileScreen(),
         ),
         GoRoute(
           path: 'application-status',
-          builder: (BuildContext context, GoRouterState state) => const ApplicationStatusScreen(),
+          builder: (BuildContext context, GoRouterState state) =>
+              const ApplicationStatusScreen(),
         ),
-        GoRoute(
+         GoRoute(
           path: 'scholarship-calls',
           builder: (BuildContext context, GoRouterState state) => const ScholarshipCallsListScreen(),
         ),
         GoRoute(
-          path: 'scholarship-application/:callId', 
+          path: 'scholarship-application/:callId',
           builder: (BuildContext context, GoRouterState state) {
             final callId = state.pathParameters['callId']!;
             return ScholarshipApplicationScreen(callId: callId);
           },
         ),
         GoRoute(
-          path: 'scholarship-info',      
-          builder: (BuildContext context, GoRouterState state) => const ScholarshipInfoScreen(),
+          path: 'scholarship-info',
+          builder: (BuildContext context, GoRouterState state) =>
+              const ScholarshipInfoScreen(),
         ),
       ],
     ),
     GoRoute(
       path: '/admin-dashboard',
-      builder: (BuildContext context, GoRouterState state) => const AdminDashboardScreen(),
+      builder: (BuildContext context, GoRouterState state) =>
+          const AdminDashboardScreen(),
       routes: [
         GoRoute(
           path: 'admin-scholarship-calls',
@@ -105,38 +114,55 @@ final GoRouter _router = GoRouter(
               builder: (context, state) {
                 final callId = state.pathParameters['callId']!;
                 final applicantId = state.pathParameters['applicantId']!;
-                return ApplicantDetailsScreen(callId: callId, applicantId: applicantId);
+                return ApplicantDetailsScreen(
+                    callId: callId, applicantId: applicantId);
               },
             ),
           ],
         ),
         GoRoute(
           path: 'create-scholarship-call',
-          builder: (BuildContext context, GoRouterState state) => const CreateScholarshipCallScreen(),
+          builder: (BuildContext context, GoRouterState state) =>
+              const CreateScholarshipCallScreen(),
         ),
         GoRoute(
           path: 'accepted-list',
-          builder: (BuildContext context, GoRouterState state) => const AcceptedListScreen(),
-          // --- RUTA AÑADIDA PARA EL DETALLE ---
+          builder: (BuildContext context, GoRouterState state) =>
+              const AcceptedListScreen(),
           routes: [
             GoRoute(
-              path: ':callId',
-              builder: (context, state) {
-                final callId = state.pathParameters['callId']!;
-                return AcceptedStudentsPerCallScreen(callId: callId);
-              },
-            )
+                path: ':callId',
+                builder: (context, state) {
+                  final callId = state.pathParameters['callId']!;
+                  return AcceptedStudentsPerCallScreen(callId: callId);
+                },
+                routes: [
+                  GoRoute(
+                    path: ':applicantId',
+                    builder: (context, state) {
+                      final callId = state.pathParameters['callId']!;
+                      final applicantId = state.pathParameters['applicantId']!;
+                      return AcceptedStudentDetailsScreen(
+                        callId: callId,
+                        applicantId: applicantId,
+                      );
+                    },
+                  )
+                ] 
+              )
           ],
         ),
         GoRoute(
-          path: 'settings', 
-          builder: (BuildContext context, GoRouterState state) => const AdminSettingsScreen(),
+          path: 'settings',
+          builder: (BuildContext context, GoRouterState state) =>
+              const AdminSettingsScreen(),
         ),
       ],
     ),
     GoRoute(
       path: '/cafeteria-dashboard',
-      builder: (BuildContext context, GoRouterState state) => const CafeteriaDashboardScreen(),
+      builder: (BuildContext context, GoRouterState state) =>
+          const CafeteriaDashboardScreen(),
     ),
   ],
 );
@@ -148,27 +174,28 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     const MaterialColor primarySeedColor = Colors.indigo;
 
-    // --- TEXTO BASE --- 
     final TextTheme appTextTheme = TextTheme(
-      displayLarge: GoogleFonts.montserrat(fontSize: 57, fontWeight: FontWeight.bold),
-      headlineMedium: GoogleFonts.montserrat(fontSize: 28, fontWeight: FontWeight.w600),
+      displayLarge:
+          GoogleFonts.montserrat(fontSize: 57, fontWeight: FontWeight.bold),
+      headlineMedium:
+          GoogleFonts.montserrat(fontSize: 28, fontWeight: FontWeight.w600),
       titleLarge: GoogleFonts.roboto(fontSize: 22, fontWeight: FontWeight.w500),
       bodyMedium: GoogleFonts.openSans(fontSize: 14),
       labelLarge: GoogleFonts.roboto(fontSize: 14, fontWeight: FontWeight.w500),
     );
 
-    // --- TEMA CLARO --- 
     final lightTheme = ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: primarySeedColor, 
+        seedColor: primarySeedColor,
         brightness: Brightness.light,
       ),
       textTheme: appTextTheme,
       appBarTheme: AppBarTheme(
         backgroundColor: primarySeedColor,
         foregroundColor: Colors.white,
-        titleTextStyle: GoogleFonts.montserrat(fontSize: 22, fontWeight: FontWeight.bold),
+        titleTextStyle:
+            GoogleFonts.montserrat(fontSize: 22, fontWeight: FontWeight.bold),
       ),
       inputDecorationTheme: const InputDecorationTheme(
         border: OutlineInputBorder(
@@ -179,20 +206,22 @@ class MyApp extends StatelessWidget {
         style: ElevatedButton.styleFrom(
           foregroundColor: Colors.white,
           backgroundColor: primarySeedColor,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          textStyle: GoogleFonts.roboto(fontSize: 16, fontWeight: FontWeight.w500),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          padding:
+              const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          textStyle:
+              GoogleFonts.roboto(fontSize: 16, fontWeight: FontWeight.w500),
         ),
       ),
     );
 
-    // --- TEMA OSCURO --- 
     final darkColorScheme = ColorScheme.fromSeed(
       seedColor: primarySeedColor,
       brightness: Brightness.dark,
       background: const Color(0xFF121212),
       surface: const Color(0xFF1E1E1E),
-      onSurface: Colors.white, 
+      onSurface: Colors.white,
       onBackground: Colors.white,
       primary: primarySeedColor.shade300,
       onPrimary: Colors.black,
@@ -211,7 +240,10 @@ class MyApp extends StatelessWidget {
       appBarTheme: AppBarTheme(
         backgroundColor: darkColorScheme.surface,
         foregroundColor: darkColorScheme.onSurface,
-        titleTextStyle: GoogleFonts.montserrat(fontSize: 22, fontWeight: FontWeight.bold, color: darkColorScheme.onSurface),
+        titleTextStyle: GoogleFonts.montserrat(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            color: darkColorScheme.onSurface),
       ),
       cardTheme: CardThemeData(
         color: const Color(0xFF2A2A2A), // Color de tarjeta ligeramente más claro
@@ -233,9 +265,12 @@ class MyApp extends StatelessWidget {
         style: ElevatedButton.styleFrom(
           foregroundColor: darkColorScheme.onPrimary,
           backgroundColor: darkColorScheme.primary,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          textStyle: GoogleFonts.roboto(fontSize: 16, fontWeight: FontWeight.w500),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          padding:
+              const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          textStyle:
+              GoogleFonts.roboto(fontSize: 16, fontWeight: FontWeight.w500),
         ),
       ),
     );

@@ -243,7 +243,9 @@ class _ApplicationFormViewState extends State<_ApplicationFormView> {
     final user = FirebaseAuth.instance.currentUser!;
     try {
       final dataToSave = {
-        'studentID': user.uid,
+        // <<< INICIO DE LA CORRECCIÓN >>>
+        'userId': user.uid, // Corregido: de 'studentID' a 'userId'
+        // <<< FIN DE LA CORRECCIÓN >>>
         'studentName': widget.userData['name'] ?? 'N/A',
         'lastName': widget.userData['lastName'] ?? '',
         'career': widget.userData['career'] ?? 'N/A',
