@@ -8,7 +8,7 @@ class AdminSettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Configuración'),
+        title: const Text('Configuración de Becas'),
       ),
       body: ListView(
         padding: const EdgeInsets.all(20.0),
@@ -48,34 +48,6 @@ class AdminSettingsScreen extends StatelessWidget {
             title: 'Anular Beca de Estudiante',
             subtitle: 'Cancelar la beca de un estudiante y registrar el motivo.',
             onTap: () => context.go('/admin-dashboard/settings/cancel-scholarship'),
-          ),
-          const Divider(height: 50),
-          Text(
-            'Gestión de Cuentas',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Crea nuevas cuentas de usuario para administradores o personal de cafeterías.',
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 30),
-          _buildSettingsCard(
-            context,
-            icon: Icons.person_add_alt_1_outlined,
-            title: 'Registrar Nuevo Administrador',
-            subtitle: 'Crear una cuenta para un nuevo miembro del equipo administrativo.',
-            onTap: () => context.go('/admin-dashboard/settings/register-admin'),
-          ),
-          const SizedBox(height: 16),
-          _buildSettingsCard(
-            context,
-            icon: Icons.storefront_outlined,
-            title: 'Registrar Nueva Cafetería',
-            subtitle: 'Dar de alta una nueva cuenta de cafetería para el reporte de becados.',
-            onTap: () => context.go('/admin-dashboard/settings/register-cafeteria'),
           ),
         ],
       ),

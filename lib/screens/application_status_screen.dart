@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -36,37 +35,38 @@ class _ApplicationStatusScreenState extends State<ApplicationStatusScreen> {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return [];
 
-    // 1. Usar collectionGroup para buscar en todas las subcolecciones 'applicants'
     final applicationsSnapshot = await FirebaseFirestore.instance
-        .collectionGroup('applicants')
-        .where('studentID', isEqualTo: user.uid)
+        .collection('applications') // Consulta directa a la colección principal
+        .where('studentId', isEqualTo: user.uid)
         .get();
 
     if (applicationsSnapshot.docs.isEmpty) {
-      return []; // No hay aplicaciones
+      return [];
     }
 
-    final List<Future<ApplicationWithCallDetails>> futureDetails = [];
+    final List<Future<ApplicationWithCallDetails?>> futureDetails = [];
 
     for (final doc in applicationsSnapshot.docs) {
       final applicationData = doc.data();
       final callId = applicationData['callId'] as String?;
 
       if (callId != null) {
-        // 2. Para cada aplicación, buscar los detalles de su convocatoria padre
         final futureDetail = FirebaseFirestore.instance
             .collection('scholarship_calls')
             .doc(callId)
             .get()
             .then((callDoc) {
-          final callData = callDoc.exists ? callDoc.data()! : <String, dynamic>{};
+          if (!callDoc.exists) return null;
+          final callData = callDoc.data()!;
           return ApplicationWithCallDetails(applicationData: applicationData, callData: callData);
         });
         futureDetails.add(futureDetail);
       }
     }
-    // 3. Esperar a que todas las búsquedas de detalles se completen
-    return await Future.wait(futureDetails);
+    
+    final results = await Future.wait(futureDetails);
+    // Filtrar los nulos en caso de que una convocatoria haya sido eliminada
+    return results.where((item) => item != null).cast<ApplicationWithCallDetails>().toList();
   }
 
   @override
@@ -89,7 +89,7 @@ class _ApplicationStatusScreenState extends State<ApplicationStatusScreen> {
             return Center(child: Text('Error al cargar tus solicitudes: ${snapshot.error}'));
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const _NoApplicationsView(); // Vista para cuando no hay solicitudes
+            return const _NoApplicationsView();
           }
 
           final applications = snapshot.data!;
@@ -119,16 +119,25 @@ class _ApplicationsListView extends StatelessWidget {
         final status = appData['status'] as String? ?? 'pending';
         final applicationDate = appData['applicationDate'] as Timestamp?;
         final formattedDate = applicationDate != null
-            ? DateFormat('dd/MM/yyyy').format(applicationDate.toDate())
+            ? DateFormat('dd/MM/yyyy', 'es_ES').format(applicationDate.toDate())
             : 'Fecha no disponible';
         final callTitle = callData['title'] ?? 'Convocatoria Desconocida';
 
         final statusInfo = _getStatusInfo(status);
 
+        final isCancelled = status == 'cancelled';
+        // <<< CORRECCIÓN DEL TIPO DE DATO >>>
+        final cancellationReasons = isCancelled && appData['cancellationReasons'] != null
+            ? (appData['cancellationReasons'] as List).cast<String>()
+            : <String>[];
+
         return Card(
           elevation: 3,
           margin: const EdgeInsets.only(bottom: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: isCancelled ? BorderSide(color: statusInfo['color'], width: 2) : BorderSide.none,
+          ),
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -154,11 +163,39 @@ class _ApplicationsListView extends StatelessWidget {
                 ),
                 const Divider(height: 24),
                 Text('Fecha de solicitud: $formattedDate', style: Theme.of(context).textTheme.bodyMedium),
+                if (isCancelled && cancellationReasons.isNotEmpty)
+                  _buildCancellationReasons(context, cancellationReasons),
               ],
             ),
           ),
         );
       },
+    );
+  }
+  
+  Widget _buildCancellationReasons(BuildContext context, List<String> reasons) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Motivos de la Anulación:',
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          ...reasons.map((reason) => Padding(
+                padding: const EdgeInsets.only(left: 8.0, bottom: 4.0),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('• ', style: TextStyle(fontWeight: FontWeight.bold)),
+                    Expanded(child: Text(reason)),
+                  ],
+                ),
+              )),
+        ],
+      ),
     );
   }
 
@@ -168,6 +205,8 @@ class _ApplicationsListView extends StatelessWidget {
         return {'text': 'Aprobada', 'color': Colors.green.shade700, 'icon': Icons.check_circle};
       case 'rejected':
         return {'text': 'Rechazada', 'color': Colors.red.shade700, 'icon': Icons.cancel};
+      case 'cancelled':
+        return {'text': 'Beca Anulada', 'color': Colors.grey.shade600, 'icon': Icons.do_not_disturb_on};
       case 'pending':
       default:
         return {'text': 'En Revisión', 'color': Colors.amber.shade800, 'icon': Icons.hourglass_empty};

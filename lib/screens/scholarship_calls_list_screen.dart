@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
@@ -10,6 +9,7 @@ class ScholarshipCall {
   final String description;
   final Timestamp startDate;
   final Timestamp endDate;
+  final String periodCode; // <<< CAMPO AÑADIDO
 
   ScholarshipCall({
     required this.id,
@@ -17,6 +17,7 @@ class ScholarshipCall {
     required this.description,
     required this.startDate,
     required this.endDate,
+    required this.periodCode, // <<< CAMPO AÑADIDO
   });
 
   factory ScholarshipCall.fromFirestore(DocumentSnapshot doc) {
@@ -27,6 +28,7 @@ class ScholarshipCall {
       description: data['description'] ?? 'Sin Descripción',
       startDate: data['startDate'] ?? Timestamp.now(),
       endDate: data['endDate'] ?? Timestamp.now(),
+      periodCode: data['period_code'] ?? 'N/A', // <<< CAMPO AÑADIDO
     );
   }
 
@@ -105,7 +107,26 @@ class _ScholarshipCallsListScreenState extends State<ScholarshipCallsListScreen>
                     color: isVigente ? Colors.green.shade600 : Colors.grey.shade600,
                     size: 30,
                   ),
-                  title: Text(call.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  title: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          call.title,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Chip(
+                        label: Text(call.periodCode),
+                        padding: EdgeInsets.zero,
+                        visualDensity: VisualDensity.compact,
+                        labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                        backgroundColor: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.7),
+                      ),
+                    ],
+                  ), // <<< TÍTULO MODIFICADO
                   subtitle: Text(
                     isVigente ? 'Convocatoria Vigente' : 'Convocatoria Cerrada',
                     style: TextStyle(color: isVigente ? Colors.green.shade700 : Colors.grey.shade700),
@@ -113,7 +134,6 @@ class _ScholarshipCallsListScreenState extends State<ScholarshipCallsListScreen>
                   trailing: isVigente ? const Icon(Icons.arrow_forward_ios) : null,
                   onTap: isVigente
                       ? () {
-                          // Navegar al formulario de aplicación, pasando el ID de la convocatoria
                           context.go('/student-dashboard/scholarship-application/${call.id}');
                         }
                       : null, // Deshabilitar si no está vigente

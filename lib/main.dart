@@ -27,8 +27,7 @@ import 'screens/admin_scholarship_calls_screen.dart';
 import 'screens/manage_active_scholarships_screen.dart';
 import 'screens/manage_past_scholarships_screen.dart';
 import 'screens/cancel_scholarship_screen.dart';
-import 'screens/register_admin_screen.dart';
-import 'screens/register_cafeteria_screen.dart';
+import 'screens/edit_scholarship_call_screen.dart'; // <<< IMPORTACIÓN AÑADIDA
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -161,15 +160,18 @@ final GoRouter _router = GoRouter(
                 const AdminSettingsScreen(),
             routes: [
               GoRoute(
-                  path: 'register-admin',
-                  builder: (context, state) => const RegisterAdminScreen()),
-              GoRoute(
-                  path: 'register-cafeteria',
-                  builder: (context, state) => const RegisterCafeteriaScreen()),
-              GoRoute(
                   path: 'manage-active-scholarships',
                   builder: (context, state) =>
-                      const ManageActiveScholarshipsScreen()),
+                      const ManageActiveScholarshipsScreen(),
+                  routes: [ // <<< RUTA ANIDADA AÑADIDA
+                    GoRoute(
+                      path: 'edit/:callId',
+                      builder: (context, state) {
+                        final callId = state.pathParameters['callId']!;
+                        return EditScholarshipCallScreen(callId: callId);
+                      },
+                    ),
+                  ]),
               GoRoute(
                   path: 'manage-past-scholarships',
                   builder: (context, state) =>

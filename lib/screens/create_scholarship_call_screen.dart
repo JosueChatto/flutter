@@ -44,10 +44,9 @@ class _CreateScholarshipCallScreenState extends State<CreateScholarshipCallScree
   @override
   void initState() {
     super.initState();
-    // <<< CAMBIO: Poner el año actual por defecto
     _yearController.text = DateTime.now().year.toString();
     _yearController.addListener(_generateCode);
-    _generateCode(); // Llamada inicial por si otros campos se llenan
+    _generateCode();
   }
 
   @override
@@ -62,7 +61,7 @@ class _CreateScholarshipCallScreenState extends State<CreateScholarshipCallScree
   }
 
   void _generateCode() {
-    if (!mounted) return; // Evitar llamadas a setState si el widget no está montado
+    if (!mounted) return;
 
     if (_selectedBecaType == null ||
         _selectedStartMonth == null ||
@@ -138,7 +137,7 @@ class _CreateScholarshipCallScreenState extends State<CreateScholarshipCallScree
         'requirements': _requirementsController.text.trim(),
         'startDate': Timestamp.fromDate(_startDate!),
         'endDate': Timestamp.fromDate(_endDate!),
-        'period_code': _generatedPeriodCode, // <<< CÓDIGO DEL PERIODO AÑADIDO
+        'period_code': _generatedPeriodCode, // Guardamos el código
         'createdAt': FieldValue.serverTimestamp(),
       });
 
@@ -267,7 +266,7 @@ class _CreateScholarshipCallScreenState extends State<CreateScholarshipCallScree
         TextFormField(
           controller: _yearController,
           decoration: const InputDecoration(
-            labelText: 'Año', // <<< CAMBIO: Texto de etiqueta actualizado
+            labelText: 'Año',
             border: OutlineInputBorder(),
             prefixIcon: Icon(Icons.calendar_view_day)
           ),

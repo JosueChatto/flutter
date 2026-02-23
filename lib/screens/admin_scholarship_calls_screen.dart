@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
@@ -68,6 +67,7 @@ class _AdminScholarshipCallsScreenState extends State<AdminScholarshipCallsScree
               final call = calls[index];
               final data = call.data() as Map<String, dynamic>;
               final title = data['title'] ?? 'Sin Título';
+              final periodCode = data['period_code'] ?? 'N/A'; // <<< CÓDIGO AÑADIDO
               final startDate = data['startDate'] as Timestamp?;
               final endDate = data['endDate'] as Timestamp?;
 
@@ -99,14 +99,32 @@ class _AdminScholarshipCallsScreenState extends State<AdminScholarshipCallsScree
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 child: ListTile(
                   leading: Icon(statusIcon, color: statusColor, size: 30),
-                  title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  title: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          title,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Chip(
+                        label: Text(periodCode),
+                        padding: EdgeInsets.zero,
+                        visualDensity: VisualDensity.compact,
+                        labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                        backgroundColor: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.7),
+                      ),
+                    ],
+                  ), // <<< TÍTULO MODIFICADO
                   subtitle: Text(
                     'Periodo: ${_formatTimestamp(startDate!)} - ${_formatTimestamp(endDate!)}\nEstatus: $statusText',
                   ),
                   trailing: const Icon(Icons.arrow_forward_ios),
                   isThreeLine: true,
                   onTap: () {
-                    // Navegar a la pantalla de solicitantes para ESTA convocatoria
                     context.go('/admin-dashboard/scholarship-applicants/${call.id}');
                   },
                   contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
