@@ -31,14 +31,19 @@ class _ApplicantDetailsScreenState extends State<ApplicantDetailsScreen> {
         .get();
   }
 
-  Future<void> _updateApplicationStatus(String newStatus) async {
+  Future<void> _updateApplicationStatus(String newStatus, {String? assignedCafeteria}) async {
     try {
+      final Map<String, dynamic> dataToUpdate = {'status': newStatus};
+      if (assignedCafeteria != null) {
+        dataToUpdate['assignedCafeteria'] = assignedCafeteria;
+      }
+
       await FirebaseFirestore.instance
           .collection('scholarship_calls')
           .doc(widget.callId)
           .collection('applicants')
           .doc(widget.applicantId)
-          .update({'status': newStatus});
+          .update(dataToUpdate);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Solicitud ${newStatus == 'approved' ? 'aprobada' : 'rechazada'}.')),
@@ -56,6 +61,52 @@ class _ApplicantDetailsScreenState extends State<ApplicantDetailsScreen> {
       }
     }
   }
+
+  Future<void> _showAssignCafeteriaDialog() async {
+    String? selectedCafeteria;
+    final cafeterias = ['Norte', 'Sur', 'Este'];
+
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Asignar Cafetería'),
+          content: DropdownButtonFormField<String>(
+            decoration: const InputDecoration(labelText: 'Seleccione una cafetería'),
+            value: selectedCafeteria,
+            items: cafeterias.map((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
+            onChanged: (newValue) {
+              selectedCafeteria = newValue;
+            },
+            validator: (value) => value == null ? 'Campo requerido' : null,
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancelar'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            ElevatedButton(
+              child: const Text('Confirmar'),
+              onPressed: () {
+                if (selectedCafeteria != null) {
+                  Navigator.of(context).pop();
+                  _updateApplicationStatus('approved', assignedCafeteria: selectedCafeteria);
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -89,6 +140,7 @@ class _ApplicantDetailsScreenState extends State<ApplicantDetailsScreen> {
           final reasons = data['reasons'] ?? 'Sin motivos especificados.';
           final date = data['applicationDate'] as Timestamp?;
           final formattedDate = date != null ? DateFormat('dd/MM/yyyy').format(date.toDate()) : 'N/A';
+          final assignedCafeteria = data['assignedCafeteria'] as String?;
 
           return SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 100.0),
@@ -103,6 +155,8 @@ class _ApplicantDetailsScreenState extends State<ApplicantDetailsScreen> {
                 _buildDetailCard(context, 'Fecha de Solicitud', formattedDate, Icons.calendar_today_outlined),
                 _buildReasonsCard(context, 'Motivos de la Solicitud', reasons),
                 const SizedBox(height: 16),
+                 if (assignedCafeteria != null)
+                  _buildDetailCard(context, 'Cafetería Asignada', assignedCafeteria, Icons.storefront_outlined),
                 _buildStatusCard(status),
               ],
             ),
@@ -141,7 +195,7 @@ class _ApplicantDetailsScreenState extends State<ApplicantDetailsScreen> {
             const SizedBox(width: 16),
             Expanded(
               child: ElevatedButton.icon(
-                onPressed: () => _updateApplicationStatus('approved'),
+                onPressed: _showAssignCafeteriaDialog,
                 icon: const Icon(Icons.check_circle_outline),
                 label: const Text('Aprobar'),
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.green.shade700, foregroundColor: Colors.white),

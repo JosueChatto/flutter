@@ -51,6 +51,18 @@ La aplicación ofrece una experiencia de usuario fluida y moderna, con un diseñ
 ### Perfil de Administrador
 
 - **Panel Personalizado:** El panel de administración ahora muestra el cargo específico del usuario (ej. "Director Prueba") debajo del título principal, proporcionando una experiencia más personalizada.
+- **Configuración Avanzada:**
+    - La pantalla de "Configuración" ha sido reestructurada para separar las responsabilidades de gestión.
+    - **Gestión de Becas:** Se ha añadido una nueva sección con acceso a:
+        - **Gestionar Convocatorias Vigentes:** Para modificar la información de las convocatorias activas.
+        - **Gestionar Convocatorias Anteriores:** Para eliminar convocatorias de becas que ya no están vigentes.
+        - **Anular Beca de Estudiante:** Para cancelar la beca de un estudiante y registrar el motivo.
+    - **Gestión de Cuentas:** Se mantienen las opciones para registrar nuevos administradores y cafeterías, ahora con sus propias pantallas dedicadas.
+- **Flujo de Aprobación de Solicitudes Mejorado:**
+    - **Asignación de Cafetería:** Al aprobar la solicitud de un estudiante, el administrador ahora debe asignar una cafetería ("Norte", "Sur" o "Este") a través de un diálogo de selección.
+    - **Persistencia de Datos:** El nombre de la cafetería asignada (`assignedCafeteria`) se guarda en el documento de la solicitud del estudiante en Firestore.
+    - **Visualización en Detalles:** La pantalla de detalles del solicitante ahora muestra la cafetería asignada una vez que la beca ha sido aprobada. Esto es fundamental para que el personal de cada cafetería pueda consultar únicamente a los estudiantes que le corresponden.
+
 - **Gestión de Convocatorias:** Acceso a la gestión integral de convocatorias.
 - **Lista de Aceptados con Búsqueda y Filtros:**
     - La sección "Lista de Aceptados" ha sido transformada en una herramienta de consulta avanzada.

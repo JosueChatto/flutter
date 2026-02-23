@@ -24,15 +24,18 @@ import 'screens/accepted_student_details_screen.dart';
 import 'screens/admin_settings_screen.dart';
 import 'screens/scholarship_calls_list_screen.dart';
 import 'screens/admin_scholarship_calls_screen.dart';
+import 'screens/manage_active_scholarships_screen.dart';
+import 'screens/manage_past_scholarships_screen.dart';
+import 'screens/cancel_scholarship_screen.dart';
+import 'screens/register_admin_screen.dart';
+import 'screens/register_cafeteria_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  // <<< INICIO DE LA CORRECCIÓN >>>
-  await initializeDateFormatting('es_ES', null); // Inicializa los datos de localización para español
-  // <<< FIN DE LA CORRECCIÓN >>>
+  await initializeDateFormatting('es_ES', null);
   runApp(
     MultiProvider(
       providers: [
@@ -153,10 +156,28 @@ final GoRouter _router = GoRouter(
           ],
         ),
         GoRoute(
-          path: 'settings',
-          builder: (BuildContext context, GoRouterState state) =>
-              const AdminSettingsScreen(),
-        ),
+            path: 'settings',
+            builder: (BuildContext context, GoRouterState state) =>
+                const AdminSettingsScreen(),
+            routes: [
+              GoRoute(
+                  path: 'register-admin',
+                  builder: (context, state) => const RegisterAdminScreen()),
+              GoRoute(
+                  path: 'register-cafeteria',
+                  builder: (context, state) => const RegisterCafeteriaScreen()),
+              GoRoute(
+                  path: 'manage-active-scholarships',
+                  builder: (context, state) =>
+                      const ManageActiveScholarshipsScreen()),
+              GoRoute(
+                  path: 'manage-past-scholarships',
+                  builder: (context, state) =>
+                      const ManagePastScholarshipsScreen()),
+              GoRoute(
+                  path: 'cancel-scholarship',
+                  builder: (context, state) => const CancelScholarshipScreen()),
+            ]),
       ],
     ),
     GoRoute(
@@ -170,7 +191,7 @@ final GoRouter _router = GoRouter(
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  @override
+ @override
   Widget build(BuildContext context) {
     const MaterialColor primarySeedColor = Colors.indigo;
 
