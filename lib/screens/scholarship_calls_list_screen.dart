@@ -42,10 +42,12 @@ class ScholarshipCallsListScreen extends StatefulWidget {
   const ScholarshipCallsListScreen({super.key});
 
   @override
-  State<ScholarshipCallsListScreen> createState() => _ScholarshipCallsListScreenState();
+  State<ScholarshipCallsListScreen> createState() =>
+      _ScholarshipCallsListScreenState();
 }
 
-class _ScholarshipCallsListScreenState extends State<ScholarshipCallsListScreen> {
+class _ScholarshipCallsListScreenState
+    extends State<ScholarshipCallsListScreen> {
   late Future<List<ScholarshipCall>> _callsFuture;
 
   @override
@@ -55,8 +57,13 @@ class _ScholarshipCallsListScreenState extends State<ScholarshipCallsListScreen>
   }
 
   Future<List<ScholarshipCall>> _fetchScholarshipCalls() async {
-    final snapshot = await FirebaseFirestore.instance.collection('scholarship_calls').orderBy('startDate', descending: true).get();
-    return snapshot.docs.map((doc) => ScholarshipCall.fromFirestore(doc)).toList();
+    final snapshot = await FirebaseFirestore.instance
+        .collection('scholarship_calls')
+        .orderBy('startDate', descending: true)
+        .get();
+    return snapshot.docs
+        .map((doc) => ScholarshipCall.fromFirestore(doc))
+        .toList();
   }
 
   @override
@@ -76,7 +83,9 @@ class _ScholarshipCallsListScreenState extends State<ScholarshipCallsListScreen>
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return const Center(child: Text('Error al cargar las convocatorias.'));
+            return const Center(
+              child: Text('Error al cargar las convocatorias.'),
+            );
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(
@@ -100,11 +109,15 @@ class _ScholarshipCallsListScreenState extends State<ScholarshipCallsListScreen>
               return Card(
                 elevation: 2.0,
                 margin: const EdgeInsets.only(bottom: 12.0),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 child: ListTile(
                   leading: Icon(
                     isVigente ? Icons.check_circle_outline : Icons.history,
-                    color: isVigente ? Colors.green.shade600 : Colors.grey.shade600,
+                    color: isVigente
+                        ? Colors.green.shade600
+                        : Colors.grey.shade600,
                     size: 30,
                   ),
                   title: Row(
@@ -122,23 +135,39 @@ class _ScholarshipCallsListScreenState extends State<ScholarshipCallsListScreen>
                         label: Text(call.periodCode),
                         padding: EdgeInsets.zero,
                         visualDensity: VisualDensity.compact,
-                        labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                        backgroundColor: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.7),
+                        labelStyle: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        backgroundColor: Theme.of(
+                          context,
+                        ).colorScheme.primaryContainer.withOpacity(0.7),
                       ),
                     ],
                   ), // <<< TÍTULO MODIFICADO
                   subtitle: Text(
                     isVigente ? 'Convocatoria Vigente' : 'Convocatoria Cerrada',
-                    style: TextStyle(color: isVigente ? Colors.green.shade700 : Colors.grey.shade700),
+                    style: TextStyle(
+                      color: isVigente
+                          ? Colors.green.shade700
+                          : Colors.grey.shade700,
+                    ),
                   ),
-                  trailing: isVigente ? const Icon(Icons.arrow_forward_ios) : null,
+                  trailing: isVigente
+                      ? const Icon(Icons.arrow_forward_ios)
+                      : null,
                   onTap: isVigente
                       ? () {
-                          context.go('/student-dashboard/scholarship-application/${call.id}');
+                          context.go(
+                            '/student-dashboard/scholarship-application/${call.id}',
+                          );
                         }
                       : null, // Deshabilitar si no está vigente
                   enabled: isVigente,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 12,
+                    horizontal: 16,
+                  ),
                 ),
               );
             },

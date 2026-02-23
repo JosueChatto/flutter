@@ -29,11 +29,14 @@ class StudentInfoTile extends StatelessWidget {
         String nameToShow;
         if (userSnapshot.connectionState == ConnectionState.waiting) {
           nameToShow = 'Cargando nombre...';
-        } else if (userSnapshot.hasError || !userSnapshot.hasData || !userSnapshot.data!.exists) {
+        } else if (userSnapshot.hasError ||
+            !userSnapshot.hasData ||
+            !userSnapshot.data!.exists) {
           nameToShow = 'Estudiante no encontrado';
         } else {
           final userData = userSnapshot.data!.data() as Map<String, dynamic>;
-          nameToShow = '${userData['name'] ?? ''} ${userData['lastName'] ?? ''}'.trim();
+          nameToShow = '${userData['name'] ?? ''} ${userData['lastName'] ?? ''}'
+              .trim();
         }
 
         return _buildTile(
@@ -46,25 +49,26 @@ class StudentInfoTile extends StatelessWidget {
     );
   }
 
-  Widget _buildTile(BuildContext context, {required String name, String? controlNumber, String? career}) {
-    final applicantId = applicantData['docId']; // El ID del documento del aplicante
+  Widget _buildTile(
+    BuildContext context, {
+    required String name,
+    String? controlNumber,
+    String? career,
+  }) {
+    final applicantId =
+        applicantData['docId']; // El ID del documento del aplicante
 
     return Card(
       elevation: 3,
       margin: const EdgeInsets.symmetric(vertical: 8),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       child: ListTile(
         contentPadding: const EdgeInsets.all(16),
         leading: CircleAvatar(
           backgroundColor: Theme.of(context).colorScheme.primary,
           child: const Icon(Icons.person, color: Colors.white),
         ),
-        title: Text(
-          name,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
+        title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -82,9 +86,13 @@ class StudentInfoTile extends StatelessWidget {
           if (applicantId != null) {
             context.go('/admin-dashboard/accepted-list/$callId/$applicantId');
           } else {
-             ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Error: No se pudo encontrar el ID del estudiante.')),
-              );
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Error: No se pudo encontrar el ID del estudiante.',
+                ),
+              ),
+            );
           }
         },
       ),
@@ -97,10 +105,12 @@ class AcceptedStudentsPerCallScreen extends StatefulWidget {
   const AcceptedStudentsPerCallScreen({super.key, required this.callId});
 
   @override
-  State<AcceptedStudentsPerCallScreen> createState() => _AcceptedStudentsPerCallScreenState();
+  State<AcceptedStudentsPerCallScreen> createState() =>
+      _AcceptedStudentsPerCallScreenState();
 }
 
-class _AcceptedStudentsPerCallScreenState extends State<AcceptedStudentsPerCallScreen> {
+class _AcceptedStudentsPerCallScreenState
+    extends State<AcceptedStudentsPerCallScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
@@ -123,15 +133,8 @@ class _AcceptedStudentsPerCallScreenState extends State<AcceptedStudentsPerCallS
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Estudiantes Aceptados'),
-      ),
-      body: Column(
-        children: [
-          _buildSearchBar(),
-          _buildStudentList(),
-        ],
-      ),
+      appBar: AppBar(title: const Text('Estudiantes Aceptados')),
+      body: Column(children: [_buildSearchBar(), _buildStudentList()]),
     );
   }
 
@@ -168,7 +171,9 @@ class _AcceptedStudentsPerCallScreenState extends State<AcceptedStudentsPerCallS
             return Center(child: Text('Error: ${snapshot.error}'));
           }
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return _buildEmptyState('No hay estudiantes aceptados para esta convocatoria.');
+            return _buildEmptyState(
+              'No hay estudiantes aceptados para esta convocatoria.',
+            );
           }
 
           var students = snapshot.data!.docs.map((doc) {
@@ -179,7 +184,8 @@ class _AcceptedStudentsPerCallScreenState extends State<AcceptedStudentsPerCallS
           }).toList();
 
           final filteredStudents = students.where((student) {
-            final numberControl = (student['numberControl'] ?? '').toLowerCase();
+            final numberControl = (student['numberControl'] ?? '')
+                .toLowerCase();
             return _searchQuery.isEmpty || numberControl.contains(_searchQuery);
           }).toList();
 

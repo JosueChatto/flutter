@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -33,7 +32,10 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
     }
 
     try {
-      final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
       if (mounted && doc.exists) {
         final data = doc.data()!;
         setState(() {
@@ -43,11 +45,11 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
           _isLoading = false;
         });
       } else {
-         setState(() => _isLoading = false);
+        setState(() => _isLoading = false);
       }
     } catch (e) {
-       if(mounted) setState(() => _isLoading = false);
-       print('Error al obtener los datos del encabezado: $e');
+      if (mounted) setState(() => _isLoading = false);
+      print('Error al obtener los datos del encabezado: $e');
     }
   }
 
@@ -61,7 +63,7 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
     final themeProvider = Provider.of<ThemeProvider>(context);
 
     final List<DashboardItem> items = [
-       DashboardItem(
+      DashboardItem(
         icon: Icons.person_outline,
         title: 'Mi Perfil',
         subtitle: 'Consulta tus datos personales y académicos.',
@@ -92,7 +94,11 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
         title: _buildAppBarTitle(),
         actions: [
           IconButton(
-            icon: Icon(themeProvider.themeMode == ThemeMode.dark ? Icons.light_mode : Icons.dark_mode),
+            icon: Icon(
+              themeProvider.themeMode == ThemeMode.dark
+                  ? Icons.light_mode
+                  : Icons.dark_mode,
+            ),
             tooltip: 'Cambiar Tema',
             onPressed: () => themeProvider.toggleTheme(),
           ),
@@ -103,39 +109,50 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
           ),
         ],
       ),
-      body: _isLoading 
-        ? const Center(child: CircularProgressIndicator()) 
-        : RefreshIndicator(
-            onRefresh: _loadStudentHeaderData,
-            child: ListView.separated(
-              padding: const EdgeInsets.all(16.0),
-              itemCount: items.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final item = items[index];
-                return Card(
-                  elevation: 2.0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: ListTile(
-                    leading: Icon(item.icon, size: 40, color: Theme.of(context).colorScheme.primary),
-                    title: Text(item.title, style: const TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Text(item.subtitle),
-                    trailing: const Icon(Icons.arrow_forward_ios),
-                    onTap: item.onTap,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-                  ),
-                );
-              },
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : RefreshIndicator(
+              onRefresh: _loadStudentHeaderData,
+              child: ListView.separated(
+                padding: const EdgeInsets.all(16.0),
+                itemCount: items.length,
+                separatorBuilder: (context, index) =>
+                    const SizedBox(height: 12),
+                itemBuilder: (context, index) {
+                  final item = items[index];
+                  return Card(
+                    elevation: 2.0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: ListTile(
+                      leading: Icon(
+                        item.icon,
+                        size: 40,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      title: Text(
+                        item.title,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Text(item.subtitle),
+                      trailing: const Icon(Icons.arrow_forward_ios),
+                      onTap: item.onTap,
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 16,
+                        horizontal: 16,
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
-        ),
     );
   }
 
   Widget _buildAppBarTitle() {
     if (_isLoading) {
-        return const Text('Portal del Estudiante');
+      return const Text('Portal del Estudiante');
     }
 
     String fullName = ('${_studentName ?? ''} ${_lastName ?? ''}').trim();
@@ -146,12 +163,18 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(fullName, style: const TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold)),
+        Text(
+          fullName,
+          style: const TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+        ),
         const SizedBox(height: 2),
         if (_numberControl != null && _numberControl!.isNotEmpty)
           Text(
             'No. de Control: $_numberControl',
-            style: const TextStyle(fontSize: 12.0, fontWeight: FontWeight.normal),
+            style: const TextStyle(
+              fontSize: 12.0,
+              fontWeight: FontWeight.normal,
+            ),
           ),
       ],
     );

@@ -11,9 +11,7 @@ class AcceptedListScreen extends StatelessWidget {
     final dateFormat = DateFormat('dd/MM/yyyy');
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Seleccionar Convocatoria'),
-      ),
+      appBar: AppBar(title: const Text('Seleccionar Convocatoria')),
       body: StreamBuilder<QuerySnapshot>(
         // --- CORRECCIÓN: Filtrado por fecha en lugar de status ---
         stream: FirebaseFirestore.instance
@@ -60,7 +58,8 @@ class AcceptedListScreen extends StatelessWidget {
                   : 'Fechas no especificadas';
 
               // Determinar el estatus dinámicamente
-              final statusText = (endDate != null && endDate.isBefore(DateTime.now()))
+              final statusText =
+                  (endDate != null && endDate.isBefore(DateTime.now()))
                   ? 'Finalizada'
                   : 'Vigente';
 
@@ -71,9 +70,14 @@ class AcceptedListScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: ListTile(
-                  contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 10,
+                    horizontal: 16,
+                  ),
                   leading: Icon(
-                    statusText == 'Vigente' ? Icons.check_circle : Icons.history,
+                    statusText == 'Vigente'
+                        ? Icons.check_circle
+                        : Icons.history,
                     color: statusText == 'Vigente' ? Colors.green : Colors.grey,
                     size: 30,
                   ),

@@ -6,9 +6,7 @@ class ManagePastScholarshipsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Convocatorias Anteriores'),
-      ),
+      appBar: AppBar(title: const Text('Convocatorias Anteriores')),
       body: const Center(
         child: Text('Aquí se gestionarán las convocatorias anteriores.'),
       ),

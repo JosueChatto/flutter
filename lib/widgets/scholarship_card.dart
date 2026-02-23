@@ -1,9 +1,22 @@
-
 import 'package:flutter/material.dart';
 import '../models/scholarship.dart';
 
+/// Un widget de tarjeta reutilizable para mostrar un resumen de una beca.
+///
+/// Este widget fue diseñado para visualizar los datos del modelo [Scholarship]
+/// y se utilizó en las primeras etapas de desarrollo con datos de prueba.
+///
+/// Actualmente, no se utiliza directamente en las pantallas que consumen datos
+/// de Firestore, ya que estas construyen sus propios widgets de tarjeta (ej. `ListTile`)
+/// a partir de los datos `Map<String, dynamic>`.
+///
+/// Podría ser adaptado en el futuro para consumir un `Map<String, dynamic>` si se
+/// desea estandarizar la apariencia de las tarjetas de becas en la aplicación.
 class ScholarshipCard extends StatelessWidget {
+  /// La beca a mostrar.
   final Scholarship scholarship;
+
+  /// La función a ejecutar cuando se toca la tarjeta.
   final VoidCallback onTap;
 
   const ScholarshipCard({
@@ -17,9 +30,7 @@ class ScholarshipCard extends StatelessWidget {
     return Card(
       elevation: 4.0,
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.0),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12.0),
@@ -31,9 +42,9 @@ class ScholarshipCard extends StatelessWidget {
               Text(
                 scholarship.title,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
               ),
               const SizedBox(height: 8.0),
               Text(
@@ -44,15 +55,12 @@ class ScholarshipCard extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'Monto:',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
+                  Text('Monto:', style: Theme.of(context).textTheme.bodyMedium),
                   Text(
                     scholarship.amount,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),

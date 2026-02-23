@@ -63,7 +63,8 @@ class _ScholarshipApplicationScreenState
           }
           if (snapshot.hasError) {
             return Center(
-                child: Text('Error al cargar la solicitud: ${snapshot.error}'));
+              child: Text('Error al cargar la solicitud: ${snapshot.error}'),
+            );
           }
           if (!snapshot.hasData || !snapshot.data!.exists) {
             // No ha aplicado, mostramos el formulario
@@ -71,15 +72,13 @@ class _ScholarshipApplicationScreenState
           }
 
           // Ya aplicó, mostramos el estado
-          final applicationData =
-              snapshot.data!.data() as Map<String, dynamic>;
+          final applicationData = snapshot.data!.data() as Map<String, dynamic>;
           return _AlreadyAppliedView(applicationData: applicationData);
         },
       ),
     );
   }
 }
-
 
 // WIDGET QUE MUESTRA EL ESTADO (SI YA APLICÓ)
 class _AlreadyAppliedView extends StatelessWidget {
@@ -125,8 +124,9 @@ class _AlreadyAppliedView extends StatelessWidget {
         padding: const EdgeInsets.all(20.0),
         child: Card(
           elevation: 4.0,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.0),
+          ),
           child: Padding(
             padding: const EdgeInsets.all(24.0),
             child: Column(
@@ -134,23 +134,27 @@ class _AlreadyAppliedView extends StatelessWidget {
               children: <Widget>[
                 Icon(iconData, size: 60, color: color),
                 const SizedBox(height: 20),
-                Text(title,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context)
-                        .textTheme
-                        .headlineSmall
-                        ?.copyWith(fontWeight: FontWeight.bold, color: color)),
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
+                ),
                 const SizedBox(height: 12),
-                Text(subtitle,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodyLarge
-                        ?.copyWith(height: 1.5)),
+                Text(
+                  subtitle,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyLarge?.copyWith(height: 1.5),
+                ),
                 const SizedBox(height: 24),
                 ElevatedButton(
-                    onPressed: () => context.go('/student-dashboard'),
-                    child: const Text('Volver al Inicio'))
+                  onPressed: () => context.go('/student-dashboard'),
+                  child: const Text('Volver al Inicio'),
+                ),
               ],
             ),
           ),
@@ -172,13 +176,18 @@ class _ApplicationFormLoader extends StatelessWidget {
       return const Center(child: Text("Error de autenticación."));
     }
     return FutureBuilder<DocumentSnapshot>(
-      future: FirebaseFirestore.instance.collection('users').doc(user.uid).get(),
+      future: FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get(),
       builder: (context, userSnapshot) {
         if (userSnapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
         if (!userSnapshot.hasData || !userSnapshot.data!.exists) {
-          return const Center(child: Text("No se encontró tu perfil de usuario."));
+          return const Center(
+            child: Text("No se encontró tu perfil de usuario."),
+          );
         }
         final userData = userSnapshot.data!.data() as Map<String, dynamic>;
         return _ApplicationFormView(userData: userData, callId: callId);
@@ -186,7 +195,6 @@ class _ApplicationFormLoader extends StatelessWidget {
     );
   }
 }
-
 
 // WIDGET DEL FORMULARIO DE APLICACIÓN
 class _ApplicationFormView extends StatefulWidget {
@@ -222,14 +230,17 @@ class _ApplicationFormViewState extends State<_ApplicationFormView> {
       builder: (context) => AlertDialog(
         title: const Text('Confirmar Envío'),
         content: const Text(
-            'Una vez confirmada la solicitud, no se podrán realizar cambios. ¿Deseas continuar?'),
+          'Una vez confirmada la solicitud, no se podrán realizar cambios. ¿Deseas continuar?',
+        ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancelar')),
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
           FilledButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Confirmar y Enviar')),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Confirmar y Enviar'),
+          ),
         ],
       ),
     );
@@ -268,11 +279,13 @@ class _ApplicationFormViewState extends State<_ApplicationFormView> {
           .set(dataToSave);
 
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('¡Solicitud enviada con éxito!')));
+        const SnackBar(content: Text('¡Solicitud enviada con éxito!')),
+      );
       // No se necesita delay, el StreamBuilder actualizará la UI
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al enviar la solicitud: $e')));
+        SnackBar(content: Text('Error al enviar la solicitud: $e')),
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -286,14 +299,19 @@ class _ApplicationFormViewState extends State<_ApplicationFormView> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final userData = widget.userData;
-    final fullName = ('${userData['name'] ?? ''} ${userData['lastName'] ?? ''}').trim();
-    
+    final fullName = ('${userData['name'] ?? ''} ${userData['lastName'] ?? ''}')
+        .trim();
+
     final semesterValue = userData['semester'];
-    final semester = semesterValue != null ? semesterValue.toString() : '[No definido]';
+    final semester = semesterValue != null
+        ? semesterValue.toString()
+        : '[No definido]';
 
     final numberControlValue = userData['numberControl'];
-    final numberControl = numberControlValue != null ? numberControlValue.toString() : '[No definido]';
-    
+    final numberControl = numberControlValue != null
+        ? numberControlValue.toString()
+        : '[No definido]';
+
     final career = userData['career']?.toString() ?? '[No definida]';
 
     return Form(
@@ -302,7 +320,9 @@ class _ApplicationFormViewState extends State<_ApplicationFormView> {
         padding: const EdgeInsets.all(16.0),
         child: Card(
           elevation: 2.0,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           child: Padding(
             padding: const EdgeInsets.all(20.0),
             child: Column(
@@ -310,23 +330,43 @@ class _ApplicationFormViewState extends State<_ApplicationFormView> {
               children: [
                 Text(
                   'HUGO ERNESTO CUÉLLAR CARREÓN\nDIRECTOR DEL INSTITUTO TECNOLÓGICO DE COLIMA\nPRESENTE',
-                  style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 24),
                 RichText(
                   textAlign: TextAlign.justify,
                   text: TextSpan(
-                    style: theme.textTheme.bodyLarge?.copyWith(height: 1.5, color: theme.colorScheme.onSurface),
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      height: 1.5,
+                      color: theme.colorScheme.onSurface,
+                    ),
                     children: <TextSpan>[
                       const TextSpan(text: 'El (la) que suscribe C. '),
-                      TextSpan(text: fullName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                      TextSpan(
+                        text: fullName,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
                       const TextSpan(text: ', Estudiante del '),
-                      TextSpan(text: semester, style: const TextStyle(fontWeight: FontWeight.bold)),
+                      TextSpan(
+                        text: semester,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
                       const TextSpan(text: ' semestre, de la carrera '),
-                      TextSpan(text: career, style: const TextStyle(fontWeight: FontWeight.bold)),
+                      TextSpan(
+                        text: career,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
                       const TextSpan(text: ', con número de control '),
-                      TextSpan(text: numberControl, style: const TextStyle(fontWeight: FontWeight.bold)),
-                      const TextSpan(text: ', por lo que solicito a usted se me conceda la Prestación de Beca Alimenticia, ya que por los siguientes motivos la requiero:'),
+                      TextSpan(
+                        text: numberControl,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const TextSpan(
+                        text:
+                            ', por lo que solicito a usted se me conceda la Prestación de Beca Alimenticia, ya que por los siguientes motivos la requiero:',
+                      ),
                     ],
                   ),
                 ),
@@ -336,7 +376,8 @@ class _ApplicationFormViewState extends State<_ApplicationFormView> {
                   maxLines: 8,
                   keyboardType: TextInputType.multiline,
                   decoration: const InputDecoration(
-                    hintText: 'Escriba aquí los motivos económicos, personales o académicos...',
+                    hintText:
+                        'Escriba aquí los motivos económicos, personales o académicos...',
                     labelText: 'Motivos de la Solicitud',
                     border: OutlineInputBorder(),
                     alignLabelWithHint: true,
@@ -351,7 +392,10 @@ class _ApplicationFormViewState extends State<_ApplicationFormView> {
                 const SizedBox(height: 32),
                 const Divider(),
                 const SizedBox(height: 16),
-                Text('Firma y Confirmación del Solicitante', style: theme.textTheme.titleLarge),
+                Text(
+                  'Firma y Confirmación del Solicitante',
+                  style: theme.textTheme.titleLarge,
+                ),
                 const SizedBox(height: 8),
                 Text(
                   'Para confirmar su identidad y firmar esta solicitud, por favor ingrese su número de control en el siguiente campo. Esta acción confirma que los datos proporcionados son correctos.',
@@ -364,7 +408,7 @@ class _ApplicationFormViewState extends State<_ApplicationFormView> {
                     labelText: 'Confirmar Número de Control',
                     hintText: 'Ingrese su número de control',
                     border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.verified_user_outlined), 
+                    prefixIcon: Icon(Icons.verified_user_outlined),
                   ),
                   keyboardType: TextInputType.number,
                   validator: (value) {
@@ -386,8 +430,14 @@ class _ApplicationFormViewState extends State<_ApplicationFormView> {
                           label: const Text('Firmar y Enviar Solicitud'),
                           onPressed: _submitApplication,
                           style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                            textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 32,
+                              vertical: 16,
+                            ),
+                            textStyle: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),

@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -41,7 +40,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
       setState(() => _isLoading = false);
       return;
     }
-    
+
     // El email lo tomamos directamente de Auth para mayor seguridad
     _emailController.text = _user!.email ?? 'No disponible';
 
@@ -58,23 +57,26 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
         // Asignamos todos los datos desde 'applications'
         _nameController.text = data['studentName'] ?? '';
         _lastNameController.text = data['lastName'] ?? '';
-        _phoneController.text = data['numberPhone'] ?? ''; // Corregido de 'phoneNumber'
+        _phoneController.text =
+            data['numberPhone'] ?? ''; // Corregido de 'phoneNumber'
         _semesterController.text = data['semester']?.toString() ?? '';
         _careerController.text = data['career'] ?? '';
         _statusController.text = data['status'] ?? 'No disponible';
         _numberControlController.text = data['numberControl'] ?? ''; // Nuevo
         _gpaController.text = data['gpa']?.toString() ?? ''; // Nuevo
-
       } else {
-         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No se encontró una solicitud de beca asociada a este perfil.')),
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'No se encontró una solicitud de beca asociada a este perfil.',
+            ),
+          ),
         );
       }
-
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al cargar los datos: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error al cargar los datos: $e')));
     } finally {
       setState(() {
         _isLoading = false;
@@ -128,24 +130,56 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
                     const SizedBox(height: 32),
                     _buildSectionTitle(context, 'Información Personal'),
                     const SizedBox(height: 16),
-                    _buildInfoTile(icon: Icons.person_outline, label: 'Nombre(s)', value: _nameController.text),
+                    _buildInfoTile(
+                      icon: Icons.person_outline,
+                      label: 'Nombre(s)',
+                      value: _nameController.text,
+                    ),
                     const SizedBox(height: 16),
-                    _buildInfoTile(icon: Icons.person_pin_outlined, label: 'Apellido(s)', value: _lastNameController.text),
+                    _buildInfoTile(
+                      icon: Icons.person_pin_outlined,
+                      label: 'Apellido(s)',
+                      value: _lastNameController.text,
+                    ),
                     const SizedBox(height: 16),
-                    _buildInfoTile(icon: Icons.phone_outlined, label: 'Teléfono', value: _phoneController.text),
+                    _buildInfoTile(
+                      icon: Icons.phone_outlined,
+                      label: 'Teléfono',
+                      value: _phoneController.text,
+                    ),
                     const SizedBox(height: 32),
                     _buildSectionTitle(context, 'Información Académica'),
                     const SizedBox(height: 16),
                     // Nuevos campos aquí
-                    _buildInfoTile(icon: Icons.confirmation_number_outlined, label: 'Número de Control', value: _numberControlController.text),
+                    _buildInfoTile(
+                      icon: Icons.confirmation_number_outlined,
+                      label: 'Número de Control',
+                      value: _numberControlController.text,
+                    ),
                     const SizedBox(height: 16),
-                    _buildInfoTile(icon: Icons.star_border_outlined, label: 'Calificación (Promedio)', value: _gpaController.text),
+                    _buildInfoTile(
+                      icon: Icons.star_border_outlined,
+                      label: 'Calificación (Promedio)',
+                      value: _gpaController.text,
+                    ),
                     const SizedBox(height: 16),
-                     _buildInfoTile(icon: Icons.school_outlined, label: 'Carrera', value: _careerController.text),
+                    _buildInfoTile(
+                      icon: Icons.school_outlined,
+                      label: 'Carrera',
+                      value: _careerController.text,
+                    ),
                     const SizedBox(height: 16),
-                    _buildInfoTile(icon: Icons.format_list_numbered, label: 'Semestre', value: _semesterController.text),
+                    _buildInfoTile(
+                      icon: Icons.format_list_numbered,
+                      label: 'Semestre',
+                      value: _semesterController.text,
+                    ),
                     const SizedBox(height: 16),
-                    _buildInfoTile(icon: Icons.email_outlined, label: 'Correo Institucional', value: _emailController.text),
+                    _buildInfoTile(
+                      icon: Icons.email_outlined,
+                      label: 'Correo Institucional',
+                      value: _emailController.text,
+                    ),
                   ],
                 ),
               ),
@@ -154,18 +188,25 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
   }
 
   Widget _buildProfileHeader(BuildContext context) {
-    String fullName = '${_nameController.text} ${_lastNameController.text}'.trim();
+    String fullName = '${_nameController.text} ${_lastNameController.text}'
+        .trim();
     return Column(
       children: [
         CircleAvatar(
           radius: 50,
           backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-          child: Icon(Icons.person, size: 60, color: Theme.of(context).colorScheme.onPrimaryContainer),
+          child: Icon(
+            Icons.person,
+            size: 60,
+            color: Theme.of(context).colorScheme.onPrimaryContainer,
+          ),
         ),
         const SizedBox(height: 16),
         Text(
           fullName,
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+          style: Theme.of(
+            context,
+          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 8),
@@ -173,7 +214,9 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
           Chip(
             label: Text(
               _careerController.text,
-              style: TextStyle(color: Theme.of(context).colorScheme.onSecondaryContainer),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSecondaryContainer,
+              ),
             ),
             backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
           ),
@@ -185,13 +228,18 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
     return Text(
       title,
       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: Theme.of(context).colorScheme.primary,
-          ),
+        fontWeight: FontWeight.bold,
+        color: Theme.of(context).colorScheme.primary,
+      ),
     );
   }
 
-  Widget _buildInfoTile({required IconData icon, required String label, required String value, bool highlight = false}) {
+  Widget _buildInfoTile({
+    required IconData icon,
+    required String label,
+    required String value,
+    bool highlight = false,
+  }) {
     final theme = Theme.of(context);
     return Card(
       elevation: 0,
@@ -204,7 +252,9 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
           value.isNotEmpty ? value : 'No disponible',
           style: theme.textTheme.bodyLarge?.copyWith(
             fontWeight: highlight ? FontWeight.bold : FontWeight.normal,
-            color: highlight ? theme.colorScheme.tertiary : theme.textTheme.bodyLarge?.color,
+            color: highlight
+                ? theme.colorScheme.tertiary
+                : theme.textTheme.bodyLarge?.color,
           ),
         ),
       ),

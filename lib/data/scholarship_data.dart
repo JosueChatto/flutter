@@ -1,10 +1,18 @@
-
 import '../models/scholarship.dart';
 
+/// Lista de datos de prueba (mock) para el modelo [Scholarship].
+///
+/// Esta lista fue utilizada durante las fases iniciales de desarrollo para poblar la interfaz
+/// de usuario antes de que la integración con Firebase estuviera completa.
+///
+/// Actualmente, no se utiliza en la aplicación principal en producción, pero puede ser
+/// útil para pruebas de widgets o desarrollo de UI sin necesidad de una conexión
+/// activa a la base de datos.
 final List<Scholarship> mockScholarships = [
   Scholarship(
     title: 'Beca de Excelencia Académica',
-    description: 'Dirigida a estudiantes con un promedio general superior a 9.5. Esta beca cubre el 100% de la matrícula y ofrece un estipendio mensual.',
+    description:
+        'Dirigida a estudiantes con un promedio general superior a 9.5. Esta beca cubre el 100% de la matrícula y ofrece un estipendio mensual.',
     organization: 'Fundación Futuro Brillante',
     amount: 'Matrícula Completa + \$500/mes',
     deadline: '2024-12-15',
@@ -17,7 +25,8 @@ final List<Scholarship> mockScholarships = [
   ),
   Scholarship(
     title: 'Beca para Liderazgo y Servicio Comunitario',
-    description: 'Apoyo para estudiantes que demuestren un fuerte compromiso con el servicio a su comunidad y habilidades de liderazgo.',
+    description:
+        'Apoyo para estudiantes que demuestren un fuerte compromiso con el servicio a su comunidad y habilidades de liderazgo.',
     organization: 'Organización Líderes del Mañana',
     amount: '\$2,500 por semestre',
     deadline: '2024-11-30',
@@ -30,7 +39,8 @@ final List<Scholarship> mockScholarships = [
   ),
   Scholarship(
     title: 'Beca para Mujeres en Tecnología',
-    description: 'Iniciativa para impulsar la participación femenina en carreras de ciencia, tecnología, ingeniería y matemáticas (STEM).',
+    description:
+        'Iniciativa para impulsar la participación femenina en carreras de ciencia, tecnología, ingeniería y matemáticas (STEM).',
     organization: 'Tech-Mujer Innovadora',
     amount: '\$10,000 anuales',
     deadline: '2025-01-20',
@@ -43,7 +53,8 @@ final List<Scholarship> mockScholarships = [
   ),
   Scholarship(
     title: 'Beca de Apoyo Deportivo',
-    description: 'Para atletas de alto rendimiento que representan a la institución en competencias nacionales.',
+    description:
+        'Para atletas de alto rendimiento que representan a la institución en competencias nacionales.',
     organization: 'Comité Deportivo Universitario',
     amount: '50% de descuento en matrícula y apoyo para viajes',
     deadline: '2024-10-31',

@@ -7,17 +7,20 @@ class ManageActiveScholarshipsScreen extends StatefulWidget {
   const ManageActiveScholarshipsScreen({super.key});
 
   @override
-  State<ManageActiveScholarshipsScreen> createState() => _ManageActiveScholarshipsScreenState();
+  State<ManageActiveScholarshipsScreen> createState() =>
+      _ManageActiveScholarshipsScreenState();
 }
 
-class _ManageActiveScholarshipsScreenState extends State<ManageActiveScholarshipsScreen> {
-  
+class _ManageActiveScholarshipsScreenState
+    extends State<ManageActiveScholarshipsScreen> {
   Future<void> _deleteCall(String callId) async {
     final bool? confirmDelete = await showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Confirmar Eliminación'),
-        content: const Text('¿Estás seguro de que quieres eliminar esta convocatoria? Esta acción no se puede deshacer.'),
+        content: const Text(
+          '¿Estás seguro de que quieres eliminar esta convocatoria? Esta acción no se puede deshacer.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -34,7 +37,10 @@ class _ManageActiveScholarshipsScreenState extends State<ManageActiveScholarship
 
     if (confirmDelete == true) {
       try {
-        await FirebaseFirestore.instance.collection('scholarship_calls').doc(callId).delete();
+        await FirebaseFirestore.instance
+            .collection('scholarship_calls')
+            .doc(callId)
+            .delete();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Convocatoria eliminada con éxito.')),
         );
@@ -52,7 +58,7 @@ class _ManageActiveScholarshipsScreenState extends State<ManageActiveScholarship
     return Scaffold(
       appBar: AppBar(
         title: const Text('Gestionar Convocatorias Vigentes'),
-         leading: IconButton(
+        leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/admin-dashboard/settings'),
         ),
@@ -68,7 +74,9 @@ class _ManageActiveScholarshipsScreenState extends State<ManageActiveScholarship
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return const Center(child: Text('Error al cargar las convocatorias.'));
+            return const Center(
+              child: Text('Error al cargar las convocatorias.'),
+            );
           }
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
             return const Center(
@@ -95,7 +103,9 @@ class _ManageActiveScholarshipsScreenState extends State<ManageActiveScholarship
               return Card(
                 elevation: 2.0,
                 margin: const EdgeInsets.only(bottom: 12.0),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 child: Padding(
                   padding: const EdgeInsets.all(12.0),
                   child: Column(
@@ -107,37 +117,52 @@ class _ManageActiveScholarshipsScreenState extends State<ManageActiveScholarship
                           Flexible(
                             child: Text(
                               title,
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           Chip(
                             label: Text(periodCode),
-                            backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.secondaryContainer,
                           ),
                         ],
                       ),
                       const SizedBox(height: 8),
-                      Text('Vigente hasta: ${DateFormat('dd/MM/yyyy').format(endDate)}'),
+                      Text(
+                        'Vigente hasta: ${DateFormat('dd/MM/yyyy').format(endDate)}',
+                      ),
                       const Divider(),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           IconButton(
-                            icon: const Icon(Icons.edit_outlined, color: Colors.blue),
+                            icon: const Icon(
+                              Icons.edit_outlined,
+                              color: Colors.blue,
+                            ),
                             tooltip: 'Modificar',
                             onPressed: () {
                               // Navegar a la pantalla de edición
-                              context.go('/admin-dashboard/settings/manage-active-scholarships/edit/${call.id}');
+                              context.go(
+                                '/admin-dashboard/settings/manage-active-scholarships/edit/${call.id}',
+                              );
                             },
                           ),
                           IconButton(
-                            icon: const Icon(Icons.delete_outline, color: Colors.red),
+                            icon: const Icon(
+                              Icons.delete_outline,
+                              color: Colors.red,
+                            ),
                             tooltip: 'Eliminar',
                             onPressed: () => _deleteCall(call.id),
                           ),
                         ],
-                      )
+                      ),
                     ],
                   ),
                 ),

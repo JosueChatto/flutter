@@ -6,11 +6,11 @@ class CancelScholarshipScreen extends StatefulWidget {
   const CancelScholarshipScreen({super.key});
 
   @override
-  State<CancelScholarshipScreen> createState() => _CancelScholarshipScreenState();
+  State<CancelScholarshipScreen> createState() =>
+      _CancelScholarshipScreenState();
 }
 
 class _CancelScholarshipScreenState extends State<CancelScholarshipScreen> {
-  
   // Lista de motivos predefinidos para la anulación
   final List<String> _cancellationReasons = [
     'Baja académica temporal o definitiva.',
@@ -37,7 +37,9 @@ class _CancelScholarshipScreenState extends State<CancelScholarshipScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Selecciona uno o más motivos para la anulación:'),
+                    const Text(
+                      'Selecciona uno o más motivos para la anulación:',
+                    ),
                     const SizedBox(height: 16),
                     ..._cancellationReasons.map((reason) {
                       return CheckboxListTile(
@@ -50,7 +52,8 @@ class _CancelScholarshipScreenState extends State<CancelScholarshipScreen> {
                             } else {
                               selectedReasons.remove(reason);
                             }
-                            validationError = null; // Limpiar error al cambiar selección
+                            validationError =
+                                null; // Limpiar error al cambiar selección
                           });
                         },
                         controlAffinity: ListTileControlAffinity.leading,
@@ -62,7 +65,10 @@ class _CancelScholarshipScreenState extends State<CancelScholarshipScreen> {
                         padding: const EdgeInsets.only(top: 8.0),
                         child: Text(
                           validationError!,
-                          style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 12),
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.error,
+                            fontSize: 12,
+                          ),
                         ),
                       ),
                   ],
@@ -75,12 +81,13 @@ class _CancelScholarshipScreenState extends State<CancelScholarshipScreen> {
                 ),
                 FilledButton(
                   onPressed: () {
-                     if (selectedReasons.isEmpty) {
-                        setState(() {
-                          validationError = 'Debes seleccionar al menos un motivo.';
-                        });
-                        return;
-                      }
+                    if (selectedReasons.isEmpty) {
+                      setState(() {
+                        validationError =
+                            'Debes seleccionar al menos un motivo.';
+                      });
+                      return;
+                    }
                     Navigator.of(context).pop(true);
                   },
                   child: const Text('Confirmar Anulación'),
@@ -97,22 +104,34 @@ class _CancelScholarshipScreenState extends State<CancelScholarshipScreen> {
     }
   }
 
-  Future<void> _performCancellation(String applicantId, List<String> reasons) async {
+  Future<void> _performCancellation(
+    String applicantId,
+    List<String> reasons,
+  ) async {
     try {
-      await FirebaseFirestore.instance.collection('applications').doc(applicantId).update({
-        'status': 'cancelled',
-        'cancellationReasons': reasons,
-        'cancellationDate': FieldValue.serverTimestamp(),
-      });
+      await FirebaseFirestore.instance
+          .collection('applications')
+          .doc(applicantId)
+          .update({
+            'status': 'cancelled',
+            'cancellationReasons': reasons,
+            'cancellationDate': FieldValue.serverTimestamp(),
+          });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Beca anulada correctamente.'), backgroundColor: Colors.green),
+        const SnackBar(
+          content: Text('Beca anulada correctamente.'),
+          backgroundColor: Colors.green,
+        ),
       );
       // Forzar la recarga de la pantalla
       setState(() {});
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al anular la beca: $e'), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text('Error al anular la beca: $e'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
@@ -122,7 +141,7 @@ class _CancelScholarshipScreenState extends State<CancelScholarshipScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Anular Beca de Estudiante'),
-         leading: IconButton(
+        leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/admin-dashboard/settings'),
         ),
@@ -137,7 +156,9 @@ class _CancelScholarshipScreenState extends State<CancelScholarshipScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return const Center(child: Text('Error al cargar los estudiantes.'));
+            return const Center(
+              child: Text('Error al cargar los estudiantes.'),
+            );
           }
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
             return const Center(
@@ -155,24 +176,39 @@ class _CancelScholarshipScreenState extends State<CancelScholarshipScreen> {
               final studentId = application['studentId'];
 
               return FutureBuilder<DocumentSnapshot>(
-                future: FirebaseFirestore.instance.collection('users').doc(studentId).get(),
+                future: FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(studentId)
+                    .get(),
                 builder: (context, userSnapshot) {
                   if (!userSnapshot.hasData) {
-                    return const Card(child: ListTile(title: Text('Cargando datos del usuario...')));
+                    return const Card(
+                      child: ListTile(
+                        title: Text('Cargando datos del usuario...'),
+                      ),
+                    );
                   }
 
-                  final userData = userSnapshot.data!.data() as Map<String, dynamic>;
-                  final studentName = "${userData['firstName'] ?? ''} ${userData['lastName'] ?? ''}";
+                  final userData =
+                      userSnapshot.data!.data() as Map<String, dynamic>;
+                  final studentName =
+                      "${userData['firstName'] ?? ''} ${userData['lastName'] ?? ''}";
 
                   return Card(
                     margin: const EdgeInsets.only(bottom: 12),
                     child: ListTile(
-                      title: Text(studentName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: Text("No. de Control: ${userData['controlNumber'] ?? 'N/A'}"),
+                      title: Text(
+                        studentName,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Text(
+                        "No. de Control: ${userData['controlNumber'] ?? 'N/A'}",
+                      ),
                       trailing: ElevatedButton.icon(
                         icon: const Icon(Icons.cancel_outlined, size: 18),
                         label: const Text('Anular'),
-                        onPressed: () => _showCancelDialog(application.id, studentName),
+                        onPressed: () =>
+                            _showCancelDialog(application.id, studentName),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.red.withOpacity(0.1),
                           foregroundColor: Colors.red,

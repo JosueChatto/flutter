@@ -7,18 +7,16 @@ class AdminSettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Configuración de Becas'),
-      ),
+      appBar: AppBar(title: const Text('Configuración de Becas')),
       body: ListView(
         padding: const EdgeInsets.all(20.0),
         children: [
           const SizedBox(height: 10),
           Text(
             'Gestión de Becas',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           Text(
@@ -30,31 +28,40 @@ class AdminSettingsScreen extends StatelessWidget {
             context,
             icon: Icons.edit_calendar_outlined,
             title: 'Gestionar Convocatorias Vigentes',
-            subtitle: 'Modificar la información de las convocatorias de becas activas.',
-            onTap: () => context.go('/admin-dashboard/settings/manage-active-scholarships'),
+            subtitle:
+                'Modificar la información de las convocatorias de becas activas.',
+            onTap: () => context.go(
+              '/admin-dashboard/settings/manage-active-scholarships',
+            ),
           ),
           const SizedBox(height: 16),
           _buildSettingsCard(
             context,
             icon: Icons.delete_sweep_outlined,
             title: 'Gestionar Convocatorias Anteriores',
-            subtitle: 'Eliminar convocatorias de becas que ya no están vigentes.',
-            onTap: () => context.go('/admin-dashboard/settings/manage-past-scholarships'),
+            subtitle:
+                'Eliminar convocatorias de becas que ya no están vigentes.',
+            onTap: () => context.go(
+              '/admin-dashboard/settings/manage-past-scholarships',
+            ),
           ),
           const SizedBox(height: 16),
           _buildSettingsCard(
             context,
             icon: Icons.cancel_outlined,
             title: 'Anular Beca de Estudiante',
-            subtitle: 'Cancelar la beca de un estudiante y registrar el motivo.',
-            onTap: () => context.go('/admin-dashboard/settings/cancel-scholarship'),
+            subtitle:
+                'Cancelar la beca de un estudiante y registrar el motivo.',
+            onTap: () =>
+                context.go('/admin-dashboard/settings/cancel-scholarship'),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSettingsCard(BuildContext context, {
+  Widget _buildSettingsCard(
+    BuildContext context, {
     required IconData icon,
     required String title,
     required String subtitle,
@@ -66,7 +73,9 @@ class AdminSettingsScreen extends StatelessWidget {
       child: ListTile(
         onTap: onTap,
         leading: CircleAvatar(
-          backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+          backgroundColor: Theme.of(
+            context,
+          ).colorScheme.primary.withOpacity(0.1),
           child: Icon(icon, color: Theme.of(context).colorScheme.primary),
         ),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),

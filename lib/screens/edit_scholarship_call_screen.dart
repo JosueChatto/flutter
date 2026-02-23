@@ -8,7 +8,8 @@ class EditScholarshipCallScreen extends StatefulWidget {
   const EditScholarshipCallScreen({super.key, required this.callId});
 
   @override
-  State<EditScholarshipCallScreen> createState() => _EditScholarshipCallScreenState();
+  State<EditScholarshipCallScreen> createState() =>
+      _EditScholarshipCallScreenState();
 }
 
 class _EditScholarshipCallScreenState extends State<EditScholarshipCallScreen> {
@@ -33,7 +34,10 @@ class _EditScholarshipCallScreenState extends State<EditScholarshipCallScreen> {
 
   Future<void> _loadCallData() async {
     try {
-      final doc = await FirebaseFirestore.instance.collection('scholarship_calls').doc(widget.callId).get();
+      final doc = await FirebaseFirestore.instance
+          .collection('scholarship_calls')
+          .doc(widget.callId)
+          .get();
       if (doc.exists) {
         final data = doc.data()!;
         _titleController.text = data['title'] ?? '';
@@ -43,7 +47,9 @@ class _EditScholarshipCallScreenState extends State<EditScholarshipCallScreen> {
 
         if (data['startDate'] != null) {
           _startDate = (data['startDate'] as Timestamp).toDate();
-          _startDateController.text = DateFormat('dd/MM/yyyy').format(_startDate!);
+          _startDateController.text = DateFormat(
+            'dd/MM/yyyy',
+          ).format(_startDate!);
         }
         if (data['endDate'] != null) {
           _endDate = (data['endDate'] as Timestamp).toDate();
@@ -63,7 +69,9 @@ class _EditScholarshipCallScreenState extends State<EditScholarshipCallScreen> {
 
   void _showErrorAndGoBack(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
     context.go('/admin-dashboard/settings/manage-active-scholarships');
   }
 
@@ -71,7 +79,7 @@ class _EditScholarshipCallScreenState extends State<EditScholarshipCallScreen> {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: (isStartDate ? _startDate : _endDate) ?? DateTime.now(),
-      firstDate: DateTime(2020), 
+      firstDate: DateTime(2020),
       lastDate: DateTime(2030),
     );
     if (picked != null) {
@@ -93,29 +101,33 @@ class _EditScholarshipCallScreenState extends State<EditScholarshipCallScreen> {
     setState(() => _isUpdating = true);
 
     try {
-      await FirebaseFirestore.instance.collection('scholarship_calls').doc(widget.callId).update({
-        'title': _titleController.text.trim(),
-        'description': _descriptionController.text.trim(),
-        'requirements': _requirementsController.text.trim(),
-        'startDate': _startDate != null ? Timestamp.fromDate(_startDate!) : null,
-        'endDate': _endDate != null ? Timestamp.fromDate(_endDate!) : null,
-      });
+      await FirebaseFirestore.instance
+          .collection('scholarship_calls')
+          .doc(widget.callId)
+          .update({
+            'title': _titleController.text.trim(),
+            'description': _descriptionController.text.trim(),
+            'requirements': _requirementsController.text.trim(),
+            'startDate': _startDate != null
+                ? Timestamp.fromDate(_startDate!)
+                : null,
+            'endDate': _endDate != null ? Timestamp.fromDate(_endDate!) : null,
+          });
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Convocatoria actualizada con éxito.')),
       );
       context.go('/admin-dashboard/settings/manage-active-scholarships');
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al actualizar: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error al actualizar: $e')));
     } finally {
       if (mounted) {
         setState(() => _isUpdating = false);
       }
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -124,7 +136,9 @@ class _EditScholarshipCallScreenState extends State<EditScholarshipCallScreen> {
         title: const Text('Modificar Convocatoria'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go('/admin-dashboard/settings/manage-active-scholarships'),
+          onPressed: () => context.go(
+            '/admin-dashboard/settings/manage-active-scholarships',
+          ),
         ),
       ),
       body: _isLoading
@@ -139,8 +153,14 @@ class _EditScholarshipCallScreenState extends State<EditScholarshipCallScreen> {
                     Center(
                       child: Chip(
                         label: Text('Código: $_periodCode'),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        labelStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        labelStyle: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -167,11 +187,21 @@ class _EditScholarshipCallScreenState extends State<EditScholarshipCallScreen> {
                     Row(
                       children: [
                         Expanded(
-                          child: _buildDateField(context, label: 'Fecha de Inicio', controller: _startDateController, isStartDate: true),
+                          child: _buildDateField(
+                            context,
+                            label: 'Fecha de Inicio',
+                            controller: _startDateController,
+                            isStartDate: true,
+                          ),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
-                          child: _buildDateField(context, label: 'Fecha de Cierre', controller: _endDateController, isStartDate: false),
+                          child: _buildDateField(
+                            context,
+                            label: 'Fecha de Cierre',
+                            controller: _endDateController,
+                            isStartDate: false,
+                          ),
                         ),
                       ],
                     ),
@@ -202,20 +232,30 @@ class _EditScholarshipCallScreenState extends State<EditScholarshipCallScreen> {
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon),
-        border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+        border: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(12)),
+        ),
       ),
-      validator: (value) => value!.isEmpty ? 'Este campo no puede estar vacío' : null,
+      validator: (value) =>
+          value!.isEmpty ? 'Este campo no puede estar vacío' : null,
     );
   }
 
-  Widget _buildDateField(BuildContext context, {required String label, required TextEditingController controller, required bool isStartDate}) {
+  Widget _buildDateField(
+    BuildContext context, {
+    required String label,
+    required TextEditingController controller,
+    required bool isStartDate,
+  }) {
     return TextFormField(
       controller: controller,
       readOnly: true,
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: const Icon(Icons.calendar_today),
-        border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+        border: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(12)),
+        ),
       ),
       onTap: () => _selectDate(context, isStartDate),
       validator: (value) => value!.isEmpty ? 'Selecciona una fecha' : null,

@@ -1,37 +1,77 @@
+# Created by https://www.toptal.com/developers/gitignore/api/flutter,dart
+# Edit at https://www.toptal.com/developers/gitignore?templates=flutter,dart
 
-# Archivos de configuración del IDE y del sistema
-.DS_Store
-.idea
-.vscode/
-
-# Archivos de compilación y temporales de Flutter
-build/
-.dart_tool/
-.flutter-plugins
-.flutter-plugins-dependencies
-
-# Archivos de paquetes de Dart/Flutter
+### Dart ###
+# Packages files
+.packages
 .pub/
-.pub-cache/
 
-# Registros y diagnósticos
+# Build generated files
+.dart_tool/
+build/
+
+# Ignore log files
 *.log
 
-# Dependencias de Node.js
-node_modules/
-npm-debug.log
-yarn-error.log
+### Flutter ###
+# Flutter specific
+.flutter-plugins
+.flutter-plugins-dependencies
+*.iml
+*.ipr
+*.hprof
+*.keystore
+*.jks
 
-# Archivos sensibles
-# ¡MUY IMPORTANTE! Ignorar claves de servicio de Firebase.
-*.json
+# Miscellanea
+.idea/
+/ios/Pods/
+/ios/Flutter/App.framework
+/ios/Flutter/engine.xcconfig
+/ios/Flutter/podⅣ←/
+/ios/Flutter/Generated.xcconfig
+/ios/Flutter/.last_build_id
+/ios/.bundle
+/ios/build
+/ios/DerivedData
+/ios/Runner/Assets.xcassets
+/ios/Runner/Info.plist
+/ios/Runner/GeneratedPluginRegistrant.*
 
-# Excepciones: No ignorar archivos JSON que SÍ deben estar en el repo
-!firebase.json
-!package.json
-!package-lock.json
-!devtools_options.yaml
-!analysis_options.yaml
-!/.idx/integrations.json
-!/.idx/mcp.json
-!web/manifest.json
+# Android specific
+/android/key.properties
+/android/local.properties
+/android/app/src/main/assets/flutter_assets/
+/android/app/build
+/android/.gradle
+/android/gradle
+/android/gradlew
+/android/gradlew.bat
+
+# Windows specific
+/windows/flutter/ephemeral
+/windows/flutter/generated_config.cmake
+/windows/flutter/generated_plugins.cmake
+/windows/build
+
+# Linux specific
+/linux/flutter/ephemeral
+/linux/flutter/generated_config.cmake
+/linux/flutter/generated_plugins.cmake
+/linux/build
+
+# macOS specific
+/macos/flutter/ephemeral
+/macos/flutter/generated_config.cmake
+/macos/flutter/generated_plugins.cmake
+/macos/build
+/macos/Pods
+
+# Web specific
+/web/build
+/web/flutter_bootstrap.js
+
+# User-specific files
+.DS_Store
+**/node_modules
+firebase-debug.log

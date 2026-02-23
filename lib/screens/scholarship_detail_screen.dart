@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import '../models/scholarship.dart';
 
@@ -10,9 +9,7 @@ class ScholarshipDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(scholarship.title),
-      ),
+      appBar: AppBar(title: Text(scholarship.title)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -20,11 +17,17 @@ class ScholarshipDetailScreen extends StatelessWidget {
           children: [
             _buildSectionTitle(context, 'Organización'),
             const SizedBox(height: 8.0),
-            Text(scholarship.organization, style: Theme.of(context).textTheme.bodyLarge),
+            Text(
+              scholarship.organization,
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
             const SizedBox(height: 16.0),
             _buildSectionTitle(context, 'Descripción'),
             const SizedBox(height: 8.0),
-            Text(scholarship.description, style: Theme.of(context).textTheme.bodyLarge),
+            Text(
+              scholarship.description,
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
             const SizedBox(height: 16.0),
             _buildInfoRow(context, 'Monto:', scholarship.amount),
             const SizedBox(height: 8.0),
@@ -32,7 +35,9 @@ class ScholarshipDetailScreen extends StatelessWidget {
             const SizedBox(height: 16.0),
             _buildSectionTitle(context, 'Requisitos'),
             const SizedBox(height: 8.0),
-            ...scholarship.requirements.map((req) => _buildRequirement(context, req)),
+            ...scholarship.requirements.map(
+              (req) => _buildRequirement(context, req),
+            ),
           ],
         ),
       ),
@@ -43,9 +48,9 @@ class ScholarshipDetailScreen extends StatelessWidget {
     return Text(
       title,
       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: Theme.of(context).colorScheme.primary,
-          ),
+        fontWeight: FontWeight.bold,
+        color: Theme.of(context).colorScheme.primary,
+      ),
     );
   }
 
@@ -54,7 +59,12 @@ class ScholarshipDetailScreen extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(label, style: Theme.of(context).textTheme.titleMedium),
-        Text(value, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+        Text(
+          value,
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+        ),
       ],
     );
   }
@@ -65,9 +75,18 @@ class ScholarshipDetailScreen extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.check_circle_outline, size: 20.0, color: Theme.of(context).colorScheme.secondary),
+          Icon(
+            Icons.check_circle_outline,
+            size: 20.0,
+            color: Theme.of(context).colorScheme.secondary,
+          ),
           const SizedBox(width: 12.0),
-          Expanded(child: Text(requirement, style: Theme.of(context).textTheme.bodyLarge)),
+          Expanded(
+            child: Text(
+              requirement,
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+          ),
         ],
       ),
     );

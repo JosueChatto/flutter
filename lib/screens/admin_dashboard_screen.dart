@@ -5,6 +5,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import '../main.dart'; // Para acceder a ThemeProvider
 
+/// La pantalla principal del panel de administración.
+///
+/// Muestra un saludo, el cargo del administrador y las principales acciones
+/// que puede realizar, como gestionar convocatorias, ver listas de aceptados
+/// y acceder a la configuración.
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
 
@@ -13,6 +18,8 @@ class AdminDashboardScreen extends StatefulWidget {
 }
 
 class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
+  /// Almacena el cargo del administrador (ej. "Coordinador de Becas")
+  /// obtenido desde Firestore.
   String? _adminPosition;
 
   @override
@@ -21,22 +28,32 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     _loadAdminInfo();
   }
 
+  /// Carga la información del administrador desde Firestore.
+  ///
+  /// Obtiene el documento del usuario actual de la colección 'users' y extrae
+  /// el campo 'position' para mostrarlo en la UI.
   Future<void> _loadAdminInfo() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       try {
-        final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+        final userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+        // Se verifica si el widget sigue montado antes de actualizar el estado.
         if (mounted && userDoc.exists) {
           setState(() {
             _adminPosition = userDoc.data()?['position'];
           });
         }
       } catch (e) {
-        // Manejar error si es necesario
+        // En caso de error (ej. sin conexión), no se muestra el cargo,
+        // pero la pantalla sigue siendo funcional.
       }
     }
   }
 
+  /// Cierra la sesión del usuario y lo redirige a la pantalla de login.
   Future<void> _signOut(BuildContext context) async {
     await FirebaseAuth.instance.signOut();
     context.go('/login');
@@ -46,6 +63,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
 
+    // Lista de elementos de navegación del dashboard.
     final List<DashboardItem> items = [
       DashboardItem(
         icon: Icons.folder_copy_outlined,
@@ -77,14 +95,20 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               Text(
                 _adminPosition!,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).appBarTheme.foregroundColor?.withOpacity(0.8),
-                    ),
+                  color: Theme.of(
+                    context,
+                  ).appBarTheme.foregroundColor?.withOpacity(0.8),
+                ),
               ),
           ],
         ),
         actions: [
           IconButton(
-            icon: Icon(themeProvider.themeMode == ThemeMode.dark ? Icons.light_mode : Icons.dark_mode),
+            icon: Icon(
+              themeProvider.themeMode == ThemeMode.dark
+                  ? Icons.light_mode
+                  : Icons.dark_mode,
+            ),
             tooltip: 'Cambiar Tema',
             onPressed: () => themeProvider.toggleTheme(),
           ),
@@ -107,12 +131,22 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               borderRadius: BorderRadius.circular(12),
             ),
             child: ListTile(
-              leading: Icon(item.icon, size: 40, color: Theme.of(context).colorScheme.primary),
-              title: Text(item.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+              leading: Icon(
+                item.icon,
+                size: 40,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              title: Text(
+                item.title,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
               subtitle: Text(item.subtitle),
               trailing: const Icon(Icons.arrow_forward_ios),
               onTap: item.onTap,
-              contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+              contentPadding: const EdgeInsets.symmetric(
+                vertical: 16,
+                horizontal: 16,
+              ),
             ),
           );
         },
@@ -121,6 +155,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   }
 }
 
+/// Modelo para representar un elemento en la lista del dashboard.
 class DashboardItem {
   final IconData icon;
   final String title;

@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -65,37 +64,43 @@ class _LoginScreenState extends State<LoginScreen> {
           context.go('/cafeteria-dashboard');
           break;
         case UserRole.unknown:
-          errorMessage = 'Tu usuario está autenticado pero no tiene un rol asignado. Contacta al administrador.';
+          errorMessage =
+              'Tu usuario está autenticado pero no tiene un rol asignado. Contacta al administrador.';
           _showErrorSnackbar(errorMessage);
           break;
       }
     } on FirebaseAuthException catch (e) {
-        // Mensaje genérico para credenciales inválidas por seguridad
-        const String invalidCredentialsMessage = 'Las credenciales son incorrectas. Por favor, revisa el correo y la contraseña.';
+      // Mensaje genérico para credenciales inválidas por seguridad
+      const String invalidCredentialsMessage =
+          'Las credenciales son incorrectas. Por favor, revisa el correo y la contraseña.';
 
-        switch (e.code) {
-          // Códigos de error comunes para credenciales incorrectas
-          case 'user-not-found':
-          case 'wrong-password':
-          case 'invalid-credential': // El código de error moderno que estabas recibiendo
-            errorMessage = invalidCredentialsMessage;
-            break;
-          case 'invalid-email':
-            errorMessage = 'El formato del correo electrónico no es válido.';
-            break;
-          case 'user-disabled':
-            errorMessage = 'Este usuario ha sido deshabilitado. Contacta al administrador.';
-            break;
-          case 'too-many-requests':
-            errorMessage = 'Se ha bloqueado el acceso por demasiados intentos fallidos. Inténtalo de nuevo más tarde.';
-            break;
-          default:
-            // Un mensaje para cualquier otro error inesperado de Firebase
-            errorMessage = 'Ocurrió un error de autenticación inesperado. Código: ${e.code}';
-        }
+      switch (e.code) {
+        // Códigos de error comunes para credenciales incorrectas
+        case 'user-not-found':
+        case 'wrong-password':
+        case 'invalid-credential': // El código de error moderno que estabas recibiendo
+          errorMessage = invalidCredentialsMessage;
+          break;
+        case 'invalid-email':
+          errorMessage = 'El formato del correo electrónico no es válido.';
+          break;
+        case 'user-disabled':
+          errorMessage =
+              'Este usuario ha sido deshabilitado. Contacta al administrador.';
+          break;
+        case 'too-many-requests':
+          errorMessage =
+              'Se ha bloqueado el acceso por demasiados intentos fallidos. Inténtalo de nuevo más tarde.';
+          break;
+        default:
+          // Un mensaje para cualquier otro error inesperado de Firebase
+          errorMessage =
+              'Ocurrió un error de autenticación inesperado. Código: ${e.code}';
+      }
       _showErrorSnackbar(errorMessage);
     } catch (e) {
-      errorMessage = 'Ocurrió un error inesperado. Por favor, intenta de nuevo.';
+      errorMessage =
+          'Ocurrió un error inesperado. Por favor, intenta de nuevo.';
       _showErrorSnackbar(errorMessage);
     } finally {
       if (mounted) {
@@ -105,7 +110,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     }
   }
-  
+
   void _showErrorSnackbar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -124,7 +129,7 @@ class _LoginScreenState extends State<LoginScreen> {
           title: const Text("¿Qué es AMOBECAL?"),
           content: const SingleChildScrollView(
             child: Text(
-              '''**AMOBECAL** (Apoyo y Monitoreo de Becas Alimenticias) es una plataforma digital diseñada para gestionar el programa de becas alimenticias del Instituto.\n\n**Para Estudiantes:**\nPermite solicitar la beca, completar los formularios requeridos, consultar el estado de la solicitud (aprobada, rechazada o en revisión) y acceder a su perfil.\n\n**Para Administradores:**\nOfrece un panel para revisar las solicitudes de los estudiantes, ver sus datos y aprobar o rechazar las becas de manera eficiente.\n\nEl objetivo es hacer el proceso más transparente, rápido y accesible para todos.'''
+              '''**AMOBECAL** (Apoyo y Monitoreo de Becas Alimenticias) es una plataforma digital diseñada para gestionar el programa de becas alimenticias del Instituto.\n\n**Para Estudiantes:**\nPermite solicitar la beca, completar los formularios requeridos, consultar el estado de la solicitud (aprobada, rechazada o en revisión) y acceder a su perfil.\n\n**Para Administradores:**\nOfrece un panel para revisar las solicitudes de los estudiantes, ver sus datos y aprobar o rechazar las becas de manera eficiente.\n\nEl objetivo es hacer el proceso más transparente, rápido y accesible para todos.''',
             ),
           ),
           actions: <Widget>[
@@ -160,9 +165,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     'AMOBECAL',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -181,8 +186,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     keyboardType: TextInputType.emailAddress,
                     validator: (value) =>
                         (value == null || !value.contains('@'))
-                            ? 'Ingresa un correo válido'
-                            : null,
+                        ? 'Ingresa un correo válido'
+                        : null,
                   ),
                   const SizedBox(height: 20),
                   TextFormField(
@@ -193,16 +198,17 @@ class _LoginScreenState extends State<LoginScreen> {
                       border: const OutlineInputBorder(),
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _obscureText ? Icons.visibility_off : Icons.visibility,
+                          _obscureText
+                              ? Icons.visibility_off
+                              : Icons.visibility,
                         ),
                         onPressed: _togglePasswordVisibility,
                       ),
                     ),
                     obscureText: _obscureText,
-                    validator: (value) =>
-                        (value == null || value.length < 6)
-                            ? 'La contraseña debe tener al menos 6 caracteres'
-                            : null,
+                    validator: (value) => (value == null || value.length < 6)
+                        ? 'La contraseña debe tener al menos 6 caracteres'
+                        : null,
                   ),
                   const SizedBox(height: 30),
                   _isLoading
@@ -219,8 +225,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       IconButton(
-                        icon: Icon(themeProvider.themeMode == ThemeMode.dark ? Icons.light_mode : Icons.dark_mode),
-                        onPressed: _isLoading ? null : () => themeProvider.toggleTheme(),
+                        icon: Icon(
+                          themeProvider.themeMode == ThemeMode.dark
+                              ? Icons.light_mode
+                              : Icons.dark_mode,
+                        ),
+                        onPressed: _isLoading
+                            ? null
+                            : () => themeProvider.toggleTheme(),
                         tooltip: 'Cambiar Tema',
                       ),
                       const SizedBox(width: 20),

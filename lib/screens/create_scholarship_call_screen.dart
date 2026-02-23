@@ -3,6 +3,12 @@ import 'package:go_router/go_router.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
+/// Pantalla que permite a los administradores crear una nueva convocatoria de beca.
+///
+/// Incluye un formulario completo con validaciones para el título, descripción,
+/// requisitos y fechas. Destaca por su "Generador de Código de Periodo", que
+/// crea un identificador único para la convocatoria (ej. BA-AGO-DIC24)
+/// basado en selecciones dinámicas.
 class CreateScholarshipCallScreen extends StatefulWidget {
   const CreateScholarshipCallScreen({super.key});
 
@@ -11,7 +17,8 @@ class CreateScholarshipCallScreen extends StatefulWidget {
       _CreateScholarshipCallScreenState();
 }
 
-class _CreateScholarshipCallScreenState extends State<CreateScholarshipCallScreen> {
+class _CreateScholarshipCallScreenState
+    extends State<CreateScholarshipCallScreen> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -24,7 +31,7 @@ class _CreateScholarshipCallScreenState extends State<CreateScholarshipCallScree
   DateTime? _endDate;
   bool _isPublishing = false;
 
-  // Campos para el generador de código
+  // --- Campos para el generador de código ---
   String? _selectedBecaType;
   String? _selectedStartMonth;
   String? _selectedEndMonth;
@@ -32,13 +39,22 @@ class _CreateScholarshipCallScreenState extends State<CreateScholarshipCallScree
 
   final Map<String, String> _becaTypeMap = {
     'Beca Alimenticia': 'BA',
-    // Agrega otros tipos si es necesario
+    // Se pueden agregar otros tipos de beca y sus prefijos aquí.
   };
 
   final Map<String, String> _monthMap = {
-    'Enero': 'ENE', 'Febrero': 'FEB', 'Marzo': 'MAR', 'Abril': 'ABR',
-    'Mayo': 'MAY', 'Junio': 'JUN', 'Julio': 'JUL', 'Agosto': 'AGO',
-    'Septiembre': 'SEP', 'Octubre': 'OCT', 'Noviembre': 'NOV', 'Diciembre': 'DIC',
+    'Enero': 'ENE',
+    'Febrero': 'FEB',
+    'Marzo': 'MAR',
+    'Abril': 'ABR',
+    'Mayo': 'MAY',
+    'Junio': 'JUN',
+    'Julio': 'JUL',
+    'Agosto': 'AGO',
+    'Septiembre': 'SEP',
+    'Octubre': 'OCT',
+    'Noviembre': 'NOV',
+    'Diciembre': 'DIC',
   };
 
   @override
@@ -60,6 +76,8 @@ class _CreateScholarshipCallScreenState extends State<CreateScholarshipCallScree
     super.dispose();
   }
 
+  /// Genera dinámicamente el código de periodo basado en las selecciones del formulario.
+  /// El código se forma con: [Tipo Beca]-[Mes Inicio]-[Mes Fin][Año]
   void _generateCode() {
     if (!mounted) return;
 
@@ -84,7 +102,7 @@ class _CreateScholarshipCallScreenState extends State<CreateScholarshipCallScree
     });
   }
 
-
+  /// Muestra un `showDatePicker` y actualiza el estado y el controlador de texto.
   Future<void> _selectDate(BuildContext context, bool isStartDate) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -97,33 +115,50 @@ class _CreateScholarshipCallScreenState extends State<CreateScholarshipCallScree
       setState(() {
         if (isStartDate) {
           _startDate = picked;
-          _startDateController.text = DateFormat('dd/MM/yyyy').format(picked);
+          _startDateController.text = DateFormat(
+            'dd/MM/yyyy',
+            'es_ES',
+          ).format(picked);
         } else {
           _endDate = picked;
-          _endDateController.text = DateFormat('dd/MM/yyyy').format(picked);
+          _endDateController.text = DateFormat(
+            'dd/MM/yyyy',
+            'es_ES',
+          ).format(picked);
         }
       });
     }
   }
 
+  /// Valida el formulario y publica la nueva convocatoria en Firestore.
   Future<void> _publishCall() async {
     if (!_formKey.currentState!.validate()) return;
 
     if (_startDate == null || _endDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor, selecciona las fechas de inicio y fin.')),
+        const SnackBar(
+          content: Text('Por favor, selecciona las fechas de inicio y fin.'),
+        ),
       );
       return;
     }
     if (_endDate!.isBefore(_startDate!)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('La fecha de fin no puede ser anterior a la fecha de inicio.')),
+        const SnackBar(
+          content: Text(
+            'La fecha de fin no puede ser anterior a la fecha de inicio.',
+          ),
+        ),
       );
       return;
     }
     if (_generatedPeriodCode.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor, complete todos los campos para generar el código de periodo.')),
+        const SnackBar(
+          content: Text(
+            'Por favor, complete todos los campos para generar el código de periodo.',
+          ),
+        ),
       );
       return;
     }
@@ -137,7 +172,7 @@ class _CreateScholarshipCallScreenState extends State<CreateScholarshipCallScree
         'requirements': _requirementsController.text.trim(),
         'startDate': Timestamp.fromDate(_startDate!),
         'endDate': Timestamp.fromDate(_endDate!),
-        'period_code': _generatedPeriodCode, // Guardamos el código
+        'period_code': _generatedPeriodCode,
         'createdAt': FieldValue.serverTimestamp(),
       });
 
@@ -163,7 +198,8 @@ class _CreateScholarshipCallScreenState extends State<CreateScholarshipCallScree
         title: const Text('Crear Convocatoria'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go('/admin-dashboard/admin-scholarship-calls'),
+          onPressed: () =>
+              context.go('/admin-dashboard/admin-scholarship-calls'),
         ),
       ),
       body: SingleChildScrollView(
@@ -173,7 +209,7 @@ class _CreateScholarshipCallScreenState extends State<CreateScholarshipCallScree
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              _buildPeriodGeneratorSection(),
+              _buildPeriodGeneratorSection(context),
               const Divider(height: 48, thickness: 1),
               const Text(
                 'Detalles de la Convocatoria',
@@ -225,12 +261,13 @@ class _CreateScholarshipCallScreenState extends State<CreateScholarshipCallScree
     );
   }
 
-  Widget _buildPeriodGeneratorSection() {
+  /// Construye la sección del UI para el generador de código de periodo.
+  Widget _buildPeriodGeneratorSection(BuildContext context) {
     final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-         const Text(
+        const Text(
           'Generador de Código de Periodo',
           style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
         ),
@@ -240,25 +277,49 @@ class _CreateScholarshipCallScreenState extends State<CreateScholarshipCallScree
           style: TextStyle(color: Colors.grey),
         ),
         const SizedBox(height: 24),
-        _buildDropdown(_becaTypeMap.keys.toList(), 'Tipo de Beca', (val) {
-          setState(() { _selectedBecaType = val; });
-          _generateCode();
-        }, _selectedBecaType, validator: (v) => v == null ? 'Seleccione un tipo' : null),
+        _buildDropdown(
+          items: _becaTypeMap.keys.toList(),
+          label: 'Tipo de Beca',
+          onChanged: (val) {
+            setState(() {
+              _selectedBecaType = val;
+            });
+            _generateCode();
+          },
+          value: _selectedBecaType,
+          validator: (v) => v == null ? 'Seleccione un tipo' : null,
+        ),
         const SizedBox(height: 16),
         Row(
           children: [
             Expanded(
-              child: _buildDropdown(_monthMap.keys.toList(), 'Mes de Inicio', (val) {
-                setState(() { _selectedStartMonth = val; });
-                _generateCode();
-              }, _selectedStartMonth, validator: (v) => v == null ? 'Seleccione un mes' : null),
+              child: _buildDropdown(
+                items: _monthMap.keys.toList(),
+                label: 'Mes de Inicio',
+                onChanged: (val) {
+                  setState(() {
+                    _selectedStartMonth = val;
+                  });
+                  _generateCode();
+                },
+                value: _selectedStartMonth,
+                validator: (v) => v == null ? 'Seleccione un mes' : null,
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(
-              child: _buildDropdown(_monthMap.keys.toList(), 'Mes de Fin', (val) {
-                setState(() { _selectedEndMonth = val; });
-                _generateCode();
-              }, _selectedEndMonth, validator: (v) => v == null ? 'Seleccione un mes' : null),
+              child: _buildDropdown(
+                items: _monthMap.keys.toList(),
+                label: 'Mes de Fin',
+                onChanged: (val) {
+                  setState(() {
+                    _selectedEndMonth = val;
+                  });
+                  _generateCode();
+                },
+                value: _selectedEndMonth,
+                validator: (v) => v == null ? 'Seleccione un mes' : null,
+              ),
             ),
           ],
         ),
@@ -268,14 +329,15 @@ class _CreateScholarshipCallScreenState extends State<CreateScholarshipCallScree
           decoration: const InputDecoration(
             labelText: 'Año',
             border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.calendar_view_day)
+            prefixIcon: Icon(Icons.calendar_view_day),
           ),
           keyboardType: TextInputType.number,
-           validator: (value) {
-             if (value == null || value.isEmpty) return 'Ingrese un año';
-             if (int.tryParse(value) == null || value.length != 4) return 'Año inválido';
-             return null;
-           },
+          validator: (value) {
+            if (value == null || value.isEmpty) return 'Ingrese un año';
+            if (int.tryParse(value) == null || value.length != 4)
+              return 'Año inválido';
+            return null;
+          },
         ),
         const SizedBox(height: 24),
         if (_generatedPeriodCode.isNotEmpty)
@@ -284,12 +346,15 @@ class _CreateScholarshipCallScreenState extends State<CreateScholarshipCallScree
             decoration: BoxDecoration(
               color: theme.colorScheme.primaryContainer.withOpacity(0.3),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: theme.colorScheme.primary)
+              border: Border.all(color: theme.colorScheme.primary),
             ),
             child: Center(
               child: Column(
                 children: [
-                  const Text('Código de Periodo Generado:', style: TextStyle(fontSize: 16)),
+                  const Text(
+                    'Código de Periodo Generado:',
+                    style: TextStyle(fontSize: 16),
+                  ),
                   const SizedBox(height: 4),
                   Text(
                     _generatedPeriodCode,
@@ -306,19 +371,29 @@ class _CreateScholarshipCallScreenState extends State<CreateScholarshipCallScree
     );
   }
 
-  Widget _buildDropdown(List<String> items, String label, ValueChanged<String?> onChanged, String? value, {String? Function(String?)? validator}) {
+  /// Widget reutilizable para construir un `DropdownButtonFormField` estilizado.
+  Widget _buildDropdown(
+    List<String> items,
+    String label,
+    ValueChanged<String?> onChanged,
+    String? value, {
+    String? Function(String?)? validator,
+  }) {
     return DropdownButtonFormField<String>(
       decoration: InputDecoration(
         labelText: label,
         border: const OutlineInputBorder(),
       ),
-      initialValue: value,
-      items: items.map((item) => DropdownMenuItem(value: item, child: Text(item))).toList(),
+      value: value,
+      items: items
+          .map((item) => DropdownMenuItem(value: item, child: Text(item)))
+          .toList(),
       onChanged: onChanged,
       validator: validator,
     );
   }
 
+  /// Widget reutilizable para construir un `TextFormField` estilizado.
   Widget _buildTextFormField({
     required TextEditingController controller,
     required String label,
@@ -340,36 +415,47 @@ class _CreateScholarshipCallScreenState extends State<CreateScholarshipCallScree
     );
   }
 
+  /// Construye la fila con los campos de selección de fecha.
   Widget _buildDateFields(BuildContext context) {
     return Row(
       children: <Widget>[
         Expanded(
-          child: _buildDateField(context,
-              label: 'Fecha de Inicio',
-              controller: _startDateController,
-              isStartDate: true),
+          child: _buildDateField(
+            context,
+            label: 'Fecha de Inicio',
+            controller: _startDateController,
+            isStartDate: true,
+          ),
         ),
         const SizedBox(width: 16),
         Expanded(
-          child: _buildDateField(context,
-              label: 'Fecha de Cierre',
-              controller: _endDateController,
-              isStartDate: false),
+          child: _buildDateField(
+            context,
+            label: 'Fecha de Cierre',
+            controller: _endDateController,
+            isStartDate: false,
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildDateField(BuildContext context,
-      {required String label,
-      required TextEditingController controller,
-      required bool isStartDate}) {
+  /// Construye un campo de texto de solo lectura que abre un `DatePicker` al ser presionado.
+  Widget _buildDateField(
+    BuildContext context, {
+    required String label,
+    required TextEditingController controller,
+    required bool isStartDate,
+  }) {
     return TextFormField(
       controller: controller,
       readOnly: true,
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(Icons.calendar_today, color: Theme.of(context).colorScheme.primary),
+        prefixIcon: Icon(
+          Icons.calendar_today,
+          color: Theme.of(context).colorScheme.primary,
+        ),
         border: const OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(12)),
         ),

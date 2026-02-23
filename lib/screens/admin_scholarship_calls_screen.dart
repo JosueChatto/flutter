@@ -3,14 +3,26 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+/// Pantalla que muestra el historial de convocatorias de becas para los administradores.
+///
+/// Permite ver una lista de todas las convocatorias creadas, mostrando su estatus
+/// (Próxima, Vigente, Finalizada). También proporciona un acceso directo para
+/// crear una nueva convocatoria.
+///
+/// Utiliza un `FutureBuilder` para cargar los datos una vez. Para obtener actualizaciones
+/// en tiempo real (si otro administrador crea o modifica una convocatoria), se podría
+/// refactorizar para usar un `StreamBuilder`.
 class AdminScholarshipCallsScreen extends StatefulWidget {
   const AdminScholarshipCallsScreen({super.key});
 
   @override
-  State<AdminScholarshipCallsScreen> createState() => _AdminScholarshipCallsScreenState();
+  State<AdminScholarshipCallsScreen> createState() =>
+      _AdminScholarshipCallsScreenState();
 }
 
-class _AdminScholarshipCallsScreenState extends State<AdminScholarshipCallsScreen> {
+class _AdminScholarshipCallsScreenState
+    extends State<AdminScholarshipCallsScreen> {
+  /// Recupera la lista de convocatorias desde Firestore, ordenadas por fecha de inicio descendente.
   Future<List<DocumentSnapshot>> _fetchScholarshipCalls() async {
     final snapshot = await FirebaseFirestore.instance
         .collection('scholarship_calls')
@@ -19,8 +31,9 @@ class _AdminScholarshipCallsScreenState extends State<AdminScholarshipCallsScree
     return snapshot.docs;
   }
 
+  /// Formatea un objeto [Timestamp] a una cadena de texto legible (dd/MM/yyyy).
   String _formatTimestamp(Timestamp timestamp) {
-    return DateFormat('dd/MM/yyyy').format(timestamp.toDate());
+    return DateFormat('dd/MM/yyyy', 'es_ES').format(timestamp.toDate());
   }
 
   @override
@@ -32,7 +45,8 @@ class _AdminScholarshipCallsScreenState extends State<AdminScholarshipCallsScree
           IconButton(
             icon: const Icon(Icons.add_circle_outline),
             tooltip: 'Crear Nueva Convocatoria',
-            onPressed: () => context.go('/admin-dashboard/create-scholarship-call'),
+            onPressed: () =>
+                context.go('/admin-dashboard/create-scholarship-call'),
           ),
         ],
       ),
@@ -43,7 +57,9 @@ class _AdminScholarshipCallsScreenState extends State<AdminScholarshipCallsScree
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return const Center(child: Text('Error al cargar las convocatorias.'));
+            return const Center(
+              child: Text('Error al cargar las convocatorias.'),
+            );
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(
@@ -67,12 +83,17 @@ class _AdminScholarshipCallsScreenState extends State<AdminScholarshipCallsScree
               final call = calls[index];
               final data = call.data() as Map<String, dynamic>;
               final title = data['title'] ?? 'Sin Título';
-              final periodCode = data['period_code'] ?? 'N/A'; // <<< CÓDIGO AÑADIDO
+              final periodCode = data['period_code'] ?? 'N/A';
               final startDate = data['startDate'] as Timestamp?;
               final endDate = data['endDate'] as Timestamp?;
 
+              // Lógica para determinar el estatus de la convocatoria.
               final now = Timestamp.now();
-              final isVigente = startDate != null && endDate != null && now.compareTo(startDate) >= 0 && now.compareTo(endDate) <= 0;
+              final isVigente =
+                  startDate != null &&
+                  endDate != null &&
+                  now.compareTo(startDate) >= 0 &&
+                  now.compareTo(endDate) <= 0;
               final isFinished = endDate != null && now.compareTo(endDate) > 0;
 
               String statusText;
@@ -96,7 +117,9 @@ class _AdminScholarshipCallsScreenState extends State<AdminScholarshipCallsScree
               return Card(
                 elevation: 2.0,
                 margin: const EdgeInsets.only(bottom: 12.0),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 child: ListTile(
                   leading: Icon(statusIcon, color: statusColor, size: 30),
                   title: Row(
@@ -114,20 +137,31 @@ class _AdminScholarshipCallsScreenState extends State<AdminScholarshipCallsScree
                         label: Text(periodCode),
                         padding: EdgeInsets.zero,
                         visualDensity: VisualDensity.compact,
-                        labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                        backgroundColor: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.7),
+                        labelStyle: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        backgroundColor: Theme.of(
+                          context,
+                        ).colorScheme.primaryContainer.withOpacity(0.7),
                       ),
                     ],
-                  ), // <<< TÍTULO MODIFICADO
+                  ),
                   subtitle: Text(
                     'Periodo: ${_formatTimestamp(startDate!)} - ${_formatTimestamp(endDate!)}\nEstatus: $statusText',
                   ),
                   trailing: const Icon(Icons.arrow_forward_ios),
                   isThreeLine: true,
                   onTap: () {
-                    context.go('/admin-dashboard/scholarship-applicants/${call.id}');
+                    // Navega a la pantalla para ver los aplicantes de la convocatoria seleccionada.
+                    context.go(
+                      '/admin-dashboard/scholarship-applicants/${call.id}',
+                    );
                   },
-                  contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 12,
+                    horizontal: 16,
+                  ),
                 ),
               );
             },
