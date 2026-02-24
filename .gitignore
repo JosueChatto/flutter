@@ -1,77 +1,61 @@
-# Created by https://www.toptal.com/developers/gitignore/api/flutter,dart
-# Edit at https://www.toptal.com/developers/gitignore?templates=flutter,dart
-
-### Dart ###
-# Packages files
-.packages
-.pub/
-
-# Build generated files
-.dart_tool/
-build/
-
-# Ignore log files
+# Miscellaneous
+*.class
 *.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.buildlog/
+.history
+.svn/
 
-### Flutter ###
-# Flutter specific
-.flutter-plugins
-.flutter-plugins-dependencies
+# IntelliJ
 *.iml
 *.ipr
-*.hprof
-*.keystore
-*.jks
-
-# Miscellanea
+*.iws
 .idea/
-/ios/Pods/
-/ios/Flutter/App.framework
-/ios/Flutter/engine.xcconfig
-/ios/Flutter/podⅣ←/
-/ios/Flutter/Generated.xcconfig
-/ios/Flutter/.last_build_id
-/ios/.bundle
-/ios/build
-/ios/DerivedData
-/ios/Runner/Assets.xcassets
-/ios/Runner/Info.plist
-/ios/Runner/GeneratedPluginRegistrant.*
 
-# Android specific
-/android/key.properties
-/android/local.properties
-/android/app/src/main/assets/flutter_assets/
-/android/app/build
-/android/.gradle
-/android/gradle
-/android/gradlew
-/android/gradlew.bat
+# Flutter
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/App.framework
+ios/Flutter/Flutter.framework
+ios/Flutter/Generated.xcconfig
+ios/Runner/GeneratedPluginRegistrant.h
+ios/Runner/GeneratedPluginRegistrant.m
 
-# Windows specific
-/windows/flutter/ephemeral
-/windows/flutter/generated_config.cmake
-/windows/flutter/generated_plugins.cmake
-/windows/build
+# Android
+android/app/src/main/assets/flutter_assets/
+android/app/build/
+android/build/
+android/.gradle/
+android/captures/
+android/local.properties
+android/key.properties
+android/gradlew
+android/gradlew.bat
+android/gradle.properties
+android/settings.gradle
 
-# Linux specific
-/linux/flutter/ephemeral
-/linux/flutter/generated_config.cmake
-/linux/flutter/generated_plugins.cmake
-/linux/build
+# Web
+web/build/
 
-# macOS specific
-/macos/flutter/ephemeral
-/macos/flutter/generated_config.cmake
-/macos/flutter/generated_plugins.cmake
-/macos/build
-/macos/Pods
+# IDE-specific
+.vscode/
 
-# Web specific
-/web/build
-/web/flutter_bootstrap.js
+# Build-runner & Dart
+.dart_tool/
+lib/generated_plugin_registrant.dart
+lib/firebase_options.dart
 
-# User-specific files
-.DS_Store
-**/node_modules
-firebase-debug.log
+# Ignorar archivos sensibles
+amobecal-firebase-adminsdk-fbsvc-4f8ba8c9c8.json
+
+# Node
+node_modules/
