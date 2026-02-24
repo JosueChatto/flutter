@@ -6,7 +6,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:csv/csv.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'dart:html' as html;
@@ -75,56 +74,33 @@ class _CafeteriaScholarListScreenState extends State<CafeteriaScholarListScreen>
     });
   }
 
-  List<String> _generateDateHeaders(DateTime startDate) {
-    final List<String> headers = [];
-    final formatter = DateFormat('E dd/MM', 'es_ES');
-    int daysCount = 0;
-    int weekDaysAdded = 0;
-    final totalWeekDays = 16 * 5; // 16 weeks * 5 weekdays
-
-    while (weekDaysAdded < totalWeekDays) {
-      final currentDate = startDate.add(Duration(days: daysCount));
-      // Monday to Friday
-      if (currentDate.weekday >= 1 && currentDate.weekday <= 5) {
-        headers.add(formatter.format(currentDate));
-        weekDaysAdded++;
-      }
-      daysCount++;
-    }
-    return headers;
-  }
-
+  // MODIFIED: This function now generates the CSV with the format you requested.
   Future<void> _generateAndDownloadCsv(List<Map<String, dynamic>> students) async {
     final callDoc = await FirebaseFirestore.instance.collection('calls').doc(widget.callId).get();
     final callData = callDoc.data();
     final callTitle = callData?['title'] ?? 'Convocatoria';
-    final startDate = (callData?['startDate'] as Timestamp?)?.toDate();
 
-    if (startDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error: La convocatoria no tiene una fecha de inicio para generar la lista de asistencia.')),
-      );
-      return;
-    }
-
-    final List<String> dateHeaders = _generateDateHeaders(startDate);
     final List<List<dynamic>> rows = [];
 
-    final headerRow = ['#', 'No. de Control', 'Nombre Completo', ...dateHeaders];
+    // Header row as requested: No. de Control, Nombre Completo, Firma
+    final headerRow = ['No. de Control', 'Nombre Completo', 'Firma'];
     rows.add(headerRow);
 
+    // Sort students alphabetically
     students.sort((a, b) => ('${a['userName']} ${a['userLastName']}').compareTo('${b['userName']} ${b['userLastName']}'));
 
-    for (var i = 0; i < students.length; i++) {
-      final student = students[i];
+    // Data rows
+    for (var student in students) {
       final fullName = '${student['userName'] ?? ''} ${student['userLastName'] ?? ''}'.trim();
-      final row = [i + 1, student['userNumberControl'] ?? 'N/A', fullName, ...List.filled(dateHeaders.length, '')];
+      // Row structure with an empty placeholder for the signature
+      final row = [student['userNumberControl'] ?? 'N/A', fullName, ''];
       rows.add(row);
     }
 
     final String csv = const ListToCsvConverter().convert(rows);
     final String fileName = 'asistencia_${callTitle.replaceAll(' ', '_').toLowerCase()}.csv';
 
+    // File download logic remains the same
     if (kIsWeb) {
       final bytes = utf8.encode(csv);
       final blob = html.Blob([bytes]);
@@ -168,10 +144,15 @@ class _CafeteriaScholarListScreenState extends State<CafeteriaScholarListScreen>
           final filteredStudents = _filterStudents(allStudents);
 
           return Column(children: [
-            _buildSearchBar(), 
+            _buildSearchBar(),
             _buildFilterBar(careers, semesters, genders),
             const Divider(height: 1),
-            Expanded(child: filteredStudents.isEmpty ? _buildEmptyState('No se encontraron becados con los filtros aplicados.') : _buildStudentList(filteredStudents))]);
+            Expanded(
+              child: filteredStudents.isEmpty
+                  ? _buildEmptyState('No se encontraron becados con los filtros aplicados.')
+                  : _buildStudentList(filteredStudents),
+            )
+          ]);
         },
       ),
     );
@@ -185,13 +166,14 @@ class _CafeteriaScholarListScreenState extends State<CafeteriaScholarListScreen>
         itemBuilder: (context, index) => _buildStudentTile(students[index]),
       ),
       floatingActionButton: FloatingActionButton.extended(
+        // Pass the list of students to be exported
         onPressed: () => _generateAndDownloadCsv(students),
         label: const Text('Exportar Asistencia (CSV)'),
         icon: const Icon(Icons.archive_outlined),
       ),
     );
   }
-  
+
   Widget _buildSearchBar() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
@@ -205,7 +187,7 @@ class _CafeteriaScholarListScreenState extends State<CafeteriaScholarListScreen>
       ),
     );
   }
-  
+
   Widget _buildFilterBar(List<String> careers, List<String> semesters, List<String> genders) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -222,7 +204,8 @@ class _CafeteriaScholarListScreenState extends State<CafeteriaScholarListScreen>
 
   Widget _buildDropdownFilter(String hint, String? value, List<String> items, ValueChanged<String?> onChanged) {
     return DropdownButton<String>(
-      hint: Text('Todos los $hint'), value: value,
+      hint: Text('Todos los $hint'),
+      value: value,
       items: [DropdownMenuItem<String>(value: null, child: Text('Todos los $hint')), ...items.map((item) => DropdownMenuItem<String>(value: item, child: Text(item)))],
       onChanged: onChanged,
     );
