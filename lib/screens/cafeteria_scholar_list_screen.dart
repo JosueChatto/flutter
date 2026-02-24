@@ -3,24 +3,24 @@ import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:go_router/go_router.dart';
 import 'package:csv/csv.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'dart:html' as html;
 
-class AcceptedStudentsPerCallScreen extends StatefulWidget {
+class CafeteriaScholarListScreen extends StatefulWidget {
   final String callId;
-  const AcceptedStudentsPerCallScreen({super.key, required this.callId});
+  const CafeteriaScholarListScreen({super.key, required this.callId});
 
   @override
-  State<AcceptedStudentsPerCallScreen> createState() =>
-      _AcceptedStudentsPerCallScreenState();
+  State<CafeteriaScholarListScreen> createState() =>
+      _CafeteriaScholarListScreenState();
 }
 
-class _AcceptedStudentsPerCallScreenState
-    extends State<AcceptedStudentsPerCallScreen> {
+class _CafeteriaScholarListScreenState extends State<CafeteriaScholarListScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   String? _selectedCareer, _selectedSemester, _selectedGender;
@@ -31,19 +31,25 @@ class _AcceptedStudentsPerCallScreenState
   void initState() {
     super.initState();
     _searchController.addListener(() {
-      setState(() {
-        _searchQuery = _searchController.text.toLowerCase();
-      });
+      if (mounted) setState(() => _searchQuery = _searchController.text.toLowerCase());
     });
-    _studentsStream = _createStudentsStream();
+    _setupStream();
   }
 
-  Stream<List<Map<String, dynamic>>> _createStudentsStream() {
-    return FirebaseFirestore.instance
+  void _setupStream() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      _studentsStream = Stream.value([]);
+      return;
+    }
+    final cafeteriaId = user.uid;
+
+    _studentsStream = FirebaseFirestore.instance
         .collection('calls')
         .doc(widget.callId)
         .collection('applicants')
         .where('status', isEqualTo: 'approved')
+        .where('assignedCafeteriaId', isEqualTo: cafeteriaId)
         .snapshots()
         .asyncMap((snapshot) async {
       if (snapshot.docs.isEmpty) return [];
@@ -57,56 +63,73 @@ class _AcceptedStudentsPerCallScreenState
       return snapshot.docs.map((doc) {
         final userId = doc.id;
         final userData = usersData[userId];
-        if (userData != null) {
-          return {
-            'applicantId': doc.id,
-            'userName': userData['name'] ?? '',
-            'userLastName': userData['lastName'] ?? '',
-            'userNumberControl': userData['numberControl'] ?? 'N/A',
-            'userCareer': userData['career'] ?? 'N/A', // Corregido: 'career' en lugar de 'userCareer'
-            'userSemester': userData['semester']?.toString() ?? 'N/A',
-            'userGender': userData['gender'] ?? 'N/A',
-          };
-        }
-        return null;
-      }).where((item) => item != null).cast<Map<String, dynamic>>().toList();
+        return userData != null ? {
+          'userName': userData['name'] ?? '',
+          'userLastName': userData['lastName'] ?? '',
+          'userNumberControl': userData['numberControl'] ?? 'N/A',
+          'userCareer': userData['career'] ?? 'N/A',
+          'userSemester': userData['semester']?.toString() ?? 'N/A',
+          'userGender': userData['gender'] ?? 'N/A',
+        } : null;
+      }).whereType<Map<String, dynamic>>().toList();
     });
   }
 
-  Future<void> _generateAndDownloadCsv(List<Map<String, dynamic>> students, String callTitle) async {
+  List<String> _generateDateHeaders(DateTime startDate) {
+    final List<String> headers = [];
+    final formatter = DateFormat('E dd/MM', 'es_ES');
+    int daysCount = 0;
+    int weekDaysAdded = 0;
+    final totalWeekDays = 16 * 5; // 16 weeks * 5 weekdays
+
+    while (weekDaysAdded < totalWeekDays) {
+      final currentDate = startDate.add(Duration(days: daysCount));
+      // Monday to Friday
+      if (currentDate.weekday >= 1 && currentDate.weekday <= 5) {
+        headers.add(formatter.format(currentDate));
+        weekDaysAdded++;
+      }
+      daysCount++;
+    }
+    return headers;
+  }
+
+  Future<void> _generateAndDownloadCsv(List<Map<String, dynamic>> students) async {
+    final callDoc = await FirebaseFirestore.instance.collection('calls').doc(widget.callId).get();
+    final callData = callDoc.data();
+    final callTitle = callData?['title'] ?? 'Convocatoria';
+    final startDate = (callData?['startDate'] as Timestamp?)?.toDate();
+
+    if (startDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error: La convocatoria no tiene una fecha de inicio para generar la lista de asistencia.')),
+      );
+      return;
+    }
+
+    final List<String> dateHeaders = _generateDateHeaders(startDate);
     final List<List<dynamic>> rows = [];
-    rows.add(['#', 'No. de Control', 'Nombre Completo', 'Carrera', 'Semestre', 'Género']);
 
-    students.sort((a, b) {
-      final nameA = '${a['userName'] ?? ''} ${a['userLastName'] ?? ''}'.trim();
-      final nameB = '${b['userName'] ?? ''} ${b['userLastName'] ?? ''}'.trim();
-      return nameA.compareTo(nameB);
-    });
+    final headerRow = ['#', 'No. de Control', 'Nombre Completo', ...dateHeaders];
+    rows.add(headerRow);
 
-    for (int i = 0; i < students.length; i++) {
+    students.sort((a, b) => ('${a['userName']} ${a['userLastName']}').compareTo('${b['userName']} ${b['userLastName']}'));
+
+    for (var i = 0; i < students.length; i++) {
       final student = students[i];
       final fullName = '${student['userName'] ?? ''} ${student['userLastName'] ?? ''}'.trim();
-      rows.add([
-        i + 1,
-        student['userNumberControl'] ?? 'N/A',
-        fullName,
-        student['userCareer'] ?? 'N/A',
-        student['userSemester'] ?? 'N/A',
-        student['userGender'] ?? 'N/A',
-      ]);
+      final row = [i + 1, student['userNumberControl'] ?? 'N/A', fullName, ...List.filled(dateHeaders.length, '')];
+      rows.add(row);
     }
 
     final String csv = const ListToCsvConverter().convert(rows);
-    final String fileName = 'becarios_aceptados_${callTitle.replaceAll(' ', '_').toLowerCase()}.csv';
+    final String fileName = 'asistencia_${callTitle.replaceAll(' ', '_').toLowerCase()}.csv';
 
     if (kIsWeb) {
       final bytes = utf8.encode(csv);
       final blob = html.Blob([bytes]);
       final url = html.Url.createObjectUrlFromBlob(blob);
-      final anchor = html.document.createElement('a') as html.AnchorElement
-        ..href = url
-        ..style.display = 'none'
-        ..download = fileName;
+      final anchor = html.document.createElement('a') as html.AnchorElement..href = url..style.display = 'none'..download = fileName;
       html.document.body!.children.add(anchor);
       anchor.click();
       html.document.body!.children.remove(anchor);
@@ -116,7 +139,7 @@ class _AcceptedStudentsPerCallScreenState
       final path = '${directory.path}/$fileName';
       final file = File(path);
       await file.writeAsString(csv);
-      await Share.shareXFiles([XFile(path)], text: 'Lista de Becarios - $callTitle');
+      await Share.shareXFiles([XFile(path)], text: 'Lista de Asistencia - $callTitle');
     }
   }
 
@@ -129,13 +152,13 @@ class _AcceptedStudentsPerCallScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Estudiantes Aceptados')),
+      appBar: AppBar(title: const Text('Becarios Asignados'), leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.go('/cafeteria-dashboard'))),
       body: StreamBuilder<List<Map<String, dynamic>>>(
         stream: _studentsStream,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
           if (snapshot.hasError) return Center(child: Text('Error: ${snapshot.error}'));
-          if (!snapshot.hasData || snapshot.data!.isEmpty) return _buildEmptyState('No hay estudiantes aceptados para esta convocatoria.');
+          if (!snapshot.hasData || snapshot.data!.isEmpty) return _buildEmptyState('No hay becados asignados a esta cafetería.');
 
           final allStudents = snapshot.data!;
           final careers = allStudents.map((s) => s['userCareer'].toString()).where((c) => c != 'N/A').toSet().toList()..sort();
@@ -148,46 +171,41 @@ class _AcceptedStudentsPerCallScreenState
             _buildSearchBar(), 
             _buildFilterBar(careers, semesters, genders),
             const Divider(height: 1),
-            Expanded(
-              child: filteredStudents.isEmpty
-                  ? _buildEmptyState('No se encontraron estudiantes con los filtros aplicados.')
-                  : Scaffold(
-                      floatingActionButton: FloatingActionButton.extended(
-                          onPressed: () async {
-                            final callDoc = await FirebaseFirestore.instance.collection('calls').doc(widget.callId).get();
-                            final callTitle = callDoc.data()?['title'] ?? 'Beca';
-                            _generateAndDownloadCsv(filteredStudents, callTitle);
-                          },
-                          label: const Text('Exportar a CSV'),
-                          icon: const Icon(Icons.archive_outlined),
-                        ),
-                      body: ListView.builder(
-                        padding: const EdgeInsets.all(12.0),
-                        itemCount: filteredStudents.length,
-                        itemBuilder: (context, index) => _buildStudentTile(filteredStudents[index]),
-                      ),
-                    ),
-            ),
-          ]);
+            Expanded(child: filteredStudents.isEmpty ? _buildEmptyState('No se encontraron becados con los filtros aplicados.') : _buildStudentList(filteredStudents))]);
         },
       ),
     );
   }
 
+  Widget _buildStudentList(List<Map<String, dynamic>> students) {
+    return Scaffold(
+      body: ListView.builder(
+        padding: const EdgeInsets.all(12.0),
+        itemCount: students.length,
+        itemBuilder: (context, index) => _buildStudentTile(students[index]),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _generateAndDownloadCsv(students),
+        label: const Text('Exportar Asistencia (CSV)'),
+        icon: const Icon(Icons.archive_outlined),
+      ),
+    );
+  }
+  
   Widget _buildSearchBar() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
       child: TextField(
-            controller: _searchController,
-            decoration: InputDecoration(
-              hintText: 'Buscar por No. Control o Nombre...',
-              prefixIcon: const Icon(Icons.search),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
-            ),
-          ),
+        controller: _searchController,
+        decoration: InputDecoration(
+          hintText: 'Buscar por Nombre o No. de Control...',
+          prefixIcon: const Icon(Icons.search),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
+        ),
+      ),
     );
   }
-
+  
   Widget _buildFilterBar(List<String> careers, List<String> semesters, List<String> genders) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -209,7 +227,7 @@ class _AcceptedStudentsPerCallScreenState
       onChanged: onChanged,
     );
   }
-  
+
   List<Map<String, dynamic>> _filterStudents(List<Map<String, dynamic>> students) {
     return students.where((student) {
       final name = ('${student['userName'] ?? ''} ${student['userLastName'] ?? ''}').toLowerCase();
@@ -226,20 +244,12 @@ class _AcceptedStudentsPerCallScreenState
 
   Widget _buildStudentTile(Map<String, dynamic> studentData) {
     final name = ('${studentData['userName'] ?? ''} ${studentData['userLastName'] ?? ''}').trim();
-    final applicantId = studentData['applicantId'];
-
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 6),
       child: ListTile(
-        leading: CircleAvatar(child: const Icon(Icons.person)),
+        leading: const CircleAvatar(child: Icon(Icons.person)),
         title: Text(name.isEmpty ? 'Nombre no disponible' : name),
         subtitle: Text('No. Control: ${studentData['userNumberControl'] ?? 'N/A'}'),
-        trailing: const Icon(Icons.arrow_forward_ios),
-        onTap: () {
-          if (applicantId != null) {
-            context.go('/admin-dashboard/accepted-list/${widget.callId}/$applicantId');
-          }
-        },
       ),
     );
   }
@@ -251,9 +261,9 @@ class _AcceptedStudentsPerCallScreenState
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.person_search, size: 80, color: Colors.grey),
+            const Icon(Icons.group_off, size: 80, color: Colors.grey),
             const SizedBox(height: 16),
-            Text(message, textAlign: TextAlign.center),
+            Text(message, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16)),
           ],
         ),
       ),

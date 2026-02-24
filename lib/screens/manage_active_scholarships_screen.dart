@@ -37,14 +37,15 @@ class _ManageActiveScholarshipsScreenState
 
     if (confirmDelete == true) {
       try {
+        // CORRECCIÓN: Apunta a la colección 'calls' para eliminar.
         await FirebaseFirestore.instance
-            .collection('scholarship_calls')
+            .collection('calls')
             .doc(callId)
             .delete();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Convocatoria eliminada con éxito.')),
         );
-        setState(() {}); // Recargar la lista
+        // No es necesario setState, el StreamBuilder reconstruirá la UI.
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error al eliminar la convocatoria: $e')),
@@ -64,8 +65,9 @@ class _ManageActiveScholarshipsScreenState
         ),
       ),
       body: StreamBuilder<QuerySnapshot>(
+        // CORRECCIÓN: Apunta a la colección 'calls' para mostrar las convocatorias.
         stream: FirebaseFirestore.instance
-            .collection('scholarship_calls')
+            .collection('calls')
             .where('endDate', isGreaterThanOrEqualTo: Timestamp.now())
             .orderBy('endDate', descending: false)
             .snapshots(),

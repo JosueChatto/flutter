@@ -5,13 +5,8 @@ import 'package:intl/intl.dart';
 
 /// Pantalla que muestra el historial de convocatorias de becas para los administradores.
 ///
-/// Permite ver una lista de todas las convocatorias creadas, mostrando su estatus
-/// (Próxima, Vigente, Finalizada). También proporciona un acceso directo para
-/// crear una nueva convocatoria.
-///
-/// Utiliza un `FutureBuilder` para cargar los datos una vez. Para obtener actualizaciones
-/// en tiempo real (si otro administrador crea o modifica una convocatoria), se podría
-/// refactorizar para usar un `StreamBuilder`.
+/// MEJORA: Ahora utiliza un `StreamBuilder` para mostrar las convocatorias en tiempo real.
+/// Cualquier creación o modificación se reflejará instantáneamente sin necesidad de recargar.
 class AdminScholarshipCallsScreen extends StatefulWidget {
   const AdminScholarshipCallsScreen({super.key});
 
@@ -22,14 +17,6 @@ class AdminScholarshipCallsScreen extends StatefulWidget {
 
 class _AdminScholarshipCallsScreenState
     extends State<AdminScholarshipCallsScreen> {
-  /// Recupera la lista de convocatorias desde Firestore, ordenadas por fecha de inicio descendente.
-  Future<List<DocumentSnapshot>> _fetchScholarshipCalls() async {
-    final snapshot = await FirebaseFirestore.instance
-        .collection('scholarship_calls')
-        .orderBy('startDate', descending: true)
-        .get();
-    return snapshot.docs;
-  }
 
   /// Formatea un objeto [Timestamp] a una cadena de texto legible (dd/MM/yyyy).
   String _formatTimestamp(Timestamp timestamp) {
@@ -50,8 +37,12 @@ class _AdminScholarshipCallsScreenState
           ),
         ],
       ),
-      body: FutureBuilder<List<DocumentSnapshot>>(
-        future: _fetchScholarshipCalls(),
+      body: StreamBuilder<QuerySnapshot>(
+        // CORRECCIÓN: Apunta a la colección correcta 'calls' y usa snapshots para tiempo real.
+        stream: FirebaseFirestore.instance
+            .collection('calls')
+            .orderBy('startDate', descending: true)
+            .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -61,7 +52,7 @@ class _AdminScholarshipCallsScreenState
               child: Text('Error al cargar las convocatorias.'),
             );
           }
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
             return const Center(
               child: Padding(
                 padding: EdgeInsets.all(20.0),
@@ -74,7 +65,7 @@ class _AdminScholarshipCallsScreenState
             );
           }
 
-          final calls = snapshot.data!;
+          final calls = snapshot.data!.docs;
 
           return ListView.builder(
             padding: const EdgeInsets.all(16.0),
@@ -148,7 +139,7 @@ class _AdminScholarshipCallsScreenState
                     ],
                   ),
                   subtitle: Text(
-                    'Periodo: ${_formatTimestamp(startDate!)} - ${_formatTimestamp(endDate!)}\nEstatus: $statusText',
+                    'Periodo: ${startDate != null ? _formatTimestamp(startDate) : 'N/A'} - ${endDate != null ? _formatTimestamp(endDate) : 'N/A'}\nEstatus: $statusText',
                   ),
                   trailing: const Icon(Icons.arrow_forward_ios),
                   isThreeLine: true,

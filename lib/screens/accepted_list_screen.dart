@@ -8,15 +8,18 @@ class AcceptedListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dateFormat = DateFormat('dd/MM/yyyy');
-
     return Scaffold(
-      appBar: AppBar(title: const Text('Seleccionar Convocatoria')),
+      appBar: AppBar(
+        title: const Text('Seleccionar Convocatoria'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/admin-dashboard'),
+        ),
+      ),
       body: StreamBuilder<QuerySnapshot>(
-        // --- CORRECCIÓN: Filtrado por fecha en lugar de status ---
         stream: FirebaseFirestore.instance
-            .collection('scholarship_calls')
-            .where('endDate', isGreaterThanOrEqualTo: Timestamp.now())
+            .collection('calls')
+            .orderBy('endDate', descending: true) 
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -33,7 +36,7 @@ class AcceptedListScreen extends StatelessWidget {
                   Icon(Icons.folder_off, size: 80, color: Colors.grey),
                   SizedBox(height: 16),
                   Text(
-                    'No hay convocatorias vigentes.',
+                    'No se han encontrado convocatorias.',
                     style: TextStyle(fontSize: 16, color: Colors.grey),
                   ),
                 ],
@@ -50,18 +53,11 @@ class AcceptedListScreen extends StatelessWidget {
               final call = calls[index];
               final data = call.data() as Map<String, dynamic>;
 
-              final startDate = (data['startDate'] as Timestamp?)?.toDate();
+              final title = data['title'] ?? 'Beca sin título';
+              final period = data['period'] ?? 'N/A'; // <-- CORREGIDO (aunque ya parecía estar bien, me aseguro)
               final endDate = (data['endDate'] as Timestamp?)?.toDate();
-
-              final period = (startDate != null && endDate != null)
-                  ? '${dateFormat.format(startDate)} - ${dateFormat.format(endDate)}'
-                  : 'Fechas no especificadas';
-
-              // Determinar el estatus dinámicamente
-              final statusText =
-                  (endDate != null && endDate.isBefore(DateTime.now()))
-                  ? 'Finalizada'
-                  : 'Vigente';
+              
+              final isPast = endDate != null && endDate.isBefore(DateTime.now());
 
               return Card(
                 elevation: 3,
@@ -75,27 +71,16 @@ class AcceptedListScreen extends StatelessWidget {
                     horizontal: 16,
                   ),
                   leading: Icon(
-                    statusText == 'Vigente'
-                        ? Icons.check_circle
-                        : Icons.history,
-                    color: statusText == 'Vigente' ? Colors.green : Colors.grey,
+                    isPast ? Icons.history : Icons.check_circle_outline,
+                    color: isPast ? Colors.grey : Colors.green,
                     size: 30,
                   ),
                   title: Text(
-                    data['title'] ?? 'Beca sin título',
+                    title,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 4),
-                      Text('Periodo: $period'),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Estatus: $statusText',
-                        style: const TextStyle(fontStyle: FontStyle.italic),
-                      ),
-                    ],
+                  subtitle: Text(
+                    'Periodo: $period'
                   ),
                   trailing: const Icon(Icons.arrow_forward_ios),
                   onTap: () {

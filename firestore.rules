@@ -1,0 +1,45 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Regla de Acceso Global: Denegar todo por defecto
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Reglas para la colección 'users'
+    match /users/{userId} {
+      // Cualquiera puede crear un usuario (registrarse)
+      allow create: if true;
+      
+      // Los usuarios solo pueden leer/actualizar su propio documento
+      allow read, update: if request.auth != null && request.auth.uid == userId;
+      
+      // Los administradores pueden leer la lista de usuarios (para encontrar cafeterías)
+      allow list: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Reglas para la colección 'calls'
+    match /calls/{callId} {
+      // Cualquiera puede leer la lista de convocatorias y sus detalles
+      allow get, list: if true;
+
+      // Solo los administradores pueden crear, actualizar o eliminar convocatorias
+      allow create, update, delete: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+
+      // Reglas para la subcolección 'applicants' (solicitudes)
+      match /applicants/{applicantId} {
+        // Los estudiantes pueden crear/leer/actualizar su PROPIA solicitud
+        allow read, update: if request.auth != null && request.auth.uid == applicantId;
+        allow create: if request.auth != null && request.auth.uid == applicantId;
+
+        // Los administradores tienen acceso total a todas las solicitudes
+        allow read, list, update, delete: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+
+        // Las cafeterías pueden LEER la lista de estudiantes aprobados asignados a ELLAS
+        allow read, list: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'cafeteria' && resource.data.assignedCafeteriaId == request.auth.uid;
+      }
+    }
+  }
+}

@@ -34,8 +34,9 @@ class _EditScholarshipCallScreenState extends State<EditScholarshipCallScreen> {
 
   Future<void> _loadCallData() async {
     try {
+      // CORRECCIÓN: Apunta a la colección 'calls' para cargar los datos.
       final doc = await FirebaseFirestore.instance
-          .collection('scholarship_calls')
+          .collection('calls')
           .doc(widget.callId)
           .get();
       if (doc.exists) {
@@ -71,7 +72,7 @@ class _EditScholarshipCallScreenState extends State<EditScholarshipCallScreen> {
     if (!mounted) return;
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    ).showSnackBar(SnackBar(backgroundColor: Colors.red.shade800, content: Text(message, style: const TextStyle(color: Colors.white))));
     context.go('/admin-dashboard/settings/manage-active-scholarships');
   }
 
@@ -101,8 +102,9 @@ class _EditScholarshipCallScreenState extends State<EditScholarshipCallScreen> {
     setState(() => _isUpdating = true);
 
     try {
+      // CORRECCIÓN: Apunta a la colección 'calls' para actualizar los datos.
       await FirebaseFirestore.instance
-          .collection('scholarship_calls')
+          .collection('calls')
           .doc(widget.callId)
           .update({
             'title': _titleController.text.trim(),

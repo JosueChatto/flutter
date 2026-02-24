@@ -129,7 +129,7 @@ class _LoginScreenState extends State<LoginScreen> {
           title: const Text("¿Qué es AMOBECAL?"),
           content: const SingleChildScrollView(
             child: Text(
-              '''**AMOBECAL** (Apoyo y Monitoreo de Becas Alimenticias) es una plataforma digital diseñada para gestionar el programa de becas alimenticias del Instituto.\n\n**Para Estudiantes:**\nPermite solicitar la beca, completar los formularios requeridos, consultar el estado de la solicitud (aprobada, rechazada o en revisión) y acceder a su perfil.\n\n**Para Administradores:**\nOfrece un panel para revisar las solicitudes de los estudiantes, ver sus datos y aprobar o rechazar las becas de manera eficiente.\n\nEl objetivo es hacer el proceso más transparente, rápido y accesible para todos.''',
+              '''AMOBECAL (Apoyo y Monitoreo de Becas Alimenticias) es una plataforma digital diseñada para gestionar el programa de becas alimenticias del Instituto.\n\nPara Estudiantes:\nPermite solicitar la beca, completar los formularios requeridos, consultar el estado de la solicitud (aprobada, rechazada o en revisión) y acceder a su perfil.\n\nPara Administradores:\nOfrece un panel para revisar las solicitudes de los estudiantes, ver sus datos y aprobar o rechazar las becas de manera eficiente.\n\nEl objetivo es hacer el proceso más transparente, rápido y accesible para todos.''',
             ),
           ),
           actions: <Widget>[

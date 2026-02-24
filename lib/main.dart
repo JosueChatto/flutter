@@ -7,10 +7,12 @@ import 'package:intl/date_symbol_data_local.dart';
 
 import 'firebase_options.dart';
 import 'services/auth_service.dart';
+import 'services/initialize_content.dart';
 import 'screens/login_screen.dart';
 import 'screens/student_dashboard_screen.dart';
 import 'screens/admin_dashboard_screen.dart';
 import 'screens/cafeteria_dashboard_screen.dart';
+import 'screens/cafeteria_scholar_list_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/application_status_screen.dart';
 import 'screens/scholarship_application_screen.dart';
@@ -25,32 +27,21 @@ import 'screens/admin_settings_screen.dart';
 import 'screens/scholarship_calls_list_screen.dart';
 import 'screens/admin_scholarship_calls_screen.dart';
 import 'screens/manage_active_scholarships_screen.dart';
-import 'screens/manage_past_scholarships_screen.dart';
+import 'screens/manage_past_calls_screen.dart';
 import 'screens/cancel_scholarship_screen.dart';
 import 'screens/edit_scholarship_call_screen.dart';
+import 'screens/edit_content_screen.dart';
+import 'screens/publish_results_screen.dart';
 
-/// Punto de entrada principal de la aplicación.
-///
-/// Inicializa Firebase, el formato de localización para fechas en español (es_ES),
-/// y configura los proveedores de servicios principales (`AuthService` y `ThemeProvider`)
-/// antes de ejecutar la aplicación.
 void main() async {
-  // Asegura que los bindings de Flutter estén inicializados antes de usar plugins.
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Inicializa la conexión con Firebase utilizando las opciones específicas de la plataforma.
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
-  // Habilita el formato de fechas para el idioma español.
   await initializeDateFormatting('es_ES', null);
-
-  // Ejecuta la aplicación envolviéndola con los proveedores necesarios.
+  await initializeContent();
   runApp(
     MultiProvider(
       providers: [
-        // Proveedor para el servicio de autenticación, disponible en todo el árbol de widgets.
         Provider<AuthService>(create: (_) => AuthService()),
-        // Proveedor para gestionar el estado del tema (claro/oscuro).
         ChangeNotifierProvider(create: (context) => ThemeProvider()),
       ],
       child: const MyApp(),
@@ -58,15 +49,10 @@ void main() async {
   );
 }
 
-/// Gestiona el estado del tema de la aplicación (claro, oscuro o sistema).
-///
-/// Permite a los usuarios cambiar entre modos y notifica a los listeners para
-/// que la UI se reconstruya con el tema correcto.
 class ThemeProvider with ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.system;
   ThemeMode get themeMode => _themeMode;
 
-  /// Alterna entre el tema claro y el oscuro.
   void toggleTheme() {
     _themeMode = _themeMode == ThemeMode.light
         ? ThemeMode.dark
@@ -75,40 +61,29 @@ class ThemeProvider with ChangeNotifier {
   }
 }
 
-/// Configuración central de enrutamiento de la aplicación utilizando `GoRouter`.
-///
-/// Define todas las rutas navegables, incluyendo rutas anidadas y parámetros
-/// de ruta para una navegación estructurada y basada en URLs.
+// Router configuration
 final GoRouter _router = GoRouter(
-  initialLocation: '/login', // La primera pantalla que ve el usuario.
+  initialLocation: '/login',
   routes: <RouteBase>[
-    // --- Rutas Públicas ---
     GoRoute(
       path: '/login',
-      builder: (BuildContext context, GoRouterState state) =>
-          const LoginScreen(),
+      builder: (BuildContext context, GoRouterState state) => const LoginScreen(),
     ),
-
-    // --- Rutas para Estudiantes ---
     GoRoute(
       path: '/student-dashboard',
-      builder: (BuildContext context, GoRouterState state) =>
-          const StudentDashboardScreen(),
+      builder: (BuildContext context, GoRouterState state) => const StudentDashboardScreen(),
       routes: <RouteBase>[
         GoRoute(
           path: 'profile',
-          builder: (BuildContext context, GoRouterState state) =>
-              const ProfileScreen(),
+          builder: (BuildContext context, GoRouterState state) => const ProfileScreen(),
         ),
         GoRoute(
           path: 'application-status',
-          builder: (BuildContext context, GoRouterState state) =>
-              const ApplicationStatusScreen(),
+          builder: (BuildContext context, GoRouterState state) => const ApplicationStatusScreen(),
         ),
-        GoRoute(
+         GoRoute(
           path: 'scholarship-calls',
-          builder: (BuildContext context, GoRouterState state) =>
-              const ScholarshipCallsListScreen(),
+          builder: (BuildContext context, GoRouterState state) => const ScholarshipCallsListScreen(),
         ),
         GoRoute(
           path: 'scholarship-application/:callId',
@@ -119,22 +94,17 @@ final GoRouter _router = GoRouter(
         ),
         GoRoute(
           path: 'scholarship-info',
-          builder: (BuildContext context, GoRouterState state) =>
-              const ScholarshipInfoScreen(),
+          builder: (BuildContext context, GoRouterState state) => const ScholarshipInfoScreen(),
         ),
       ],
     ),
-
-    // --- Rutas para Administradores ---
     GoRoute(
       path: '/admin-dashboard',
-      builder: (BuildContext context, GoRouterState state) =>
-          const AdminDashboardScreen(),
+      builder: (BuildContext context, GoRouterState state) => const AdminDashboardScreen(),
       routes: [
-        GoRoute(
+         GoRoute(
           path: 'admin-scholarship-calls',
-          builder: (BuildContext context, GoRouterState state) =>
-              const AdminScholarshipCallsScreen(),
+          builder: (BuildContext context, GoRouterState state) => const AdminScholarshipCallsScreen(),
         ),
         GoRoute(
           path: 'scholarship-applicants/:callId',
@@ -158,13 +128,11 @@ final GoRouter _router = GoRouter(
         ),
         GoRoute(
           path: 'create-scholarship-call',
-          builder: (BuildContext context, GoRouterState state) =>
-              const CreateScholarshipCallScreen(),
+          builder: (BuildContext context, GoRouterState state) => const CreateScholarshipCallScreen(),
         ),
         GoRoute(
           path: 'accepted-list',
-          builder: (BuildContext context, GoRouterState state) =>
-              const AcceptedListScreen(),
+          builder: (BuildContext context, GoRouterState state) => const AcceptedListScreen(),
           routes: [
             GoRoute(
               path: ':callId',
@@ -173,7 +141,7 @@ final GoRouter _router = GoRouter(
                 return AcceptedStudentsPerCallScreen(callId: callId);
               },
               routes: [
-                GoRoute(
+                 GoRoute(
                   path: ':applicantId',
                   builder: (context, state) {
                     final callId = state.pathParameters['callId']!;
@@ -184,19 +152,25 @@ final GoRouter _router = GoRouter(
                     );
                   },
                 ),
-              ],
+              ]
             ),
           ],
         ),
         GoRoute(
           path: 'settings',
-          builder: (BuildContext context, GoRouterState state) =>
-              const AdminSettingsScreen(),
+          builder: (BuildContext context, GoRouterState state) => const AdminSettingsScreen(),
           routes: [
+             GoRoute(
+              path: 'publish-results',
+              builder: (context, state) => const PublishResultsScreen(),
+            ),
+            GoRoute(
+              path: 'edit-content',
+              builder: (context, state) => const EditContentScreen(),
+            ),
             GoRoute(
               path: 'manage-active-scholarships',
-              builder: (context, state) =>
-                  const ManageActiveScholarshipsScreen(),
+              builder: (context, state) => const ManageActiveScholarshipsScreen(),
               routes: [
                 GoRoute(
                   path: 'edit/:callId',
@@ -205,13 +179,13 @@ final GoRouter _router = GoRouter(
                     return EditScholarshipCallScreen(callId: callId);
                   },
                 ),
-              ],
+              ]
             ),
-            GoRoute(
+             GoRoute(
               path: 'manage-past-scholarships',
-              builder: (context, state) => const ManagePastScholarshipsScreen(),
+              builder: (context, state) => const ManagePastCallsScreen(),
             ),
-            GoRoute(
+             GoRoute(
               path: 'cancel-scholarship',
               builder: (context, state) => const CancelScholarshipScreen(),
             ),
@@ -219,21 +193,22 @@ final GoRouter _router = GoRouter(
         ),
       ],
     ),
-
-    // --- Rutas para Personal de Cafetería ---
-    GoRoute(
+     GoRoute(
       path: '/cafeteria-dashboard',
-      builder: (BuildContext context, GoRouterState state) =>
-          const CafeteriaDashboardScreen(),
+      builder: (BuildContext context, GoRouterState state) => const CafeteriaDashboardScreen(),
+      routes: [
+         GoRoute(
+          path: 'scholar-list/:callId',
+           builder: (context, state) {
+            final callId = state.pathParameters['callId']!;
+            return CafeteriaScholarListScreen(callId: callId);
+          },
+        ),
+      ]
     ),
   ],
 );
 
-/// El widget raíz de la aplicación.
-///
-/// Construye un `MaterialApp` configurado con temas claro y oscuro, y utiliza
-/// el `GoRouter` para la navegación. El tema de la aplicación es manejado
-/// por el `ThemeProvider`.
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -241,41 +216,25 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     const MaterialColor primarySeedColor = Colors.indigo;
 
-    // Define una tipografía base para la aplicación usando Google Fonts.
     final TextTheme appTextTheme = TextTheme(
-      displayLarge: GoogleFonts.montserrat(
-        fontSize: 57,
-        fontWeight: FontWeight.bold,
-      ),
-      headlineMedium: GoogleFonts.montserrat(
-        fontSize: 28,
-        fontWeight: FontWeight.w600,
-      ),
+      displayLarge: GoogleFonts.montserrat(fontSize: 57, fontWeight: FontWeight.bold),
+      headlineMedium: GoogleFonts.montserrat(fontSize: 28, fontWeight: FontWeight.w600),
       titleLarge: GoogleFonts.roboto(fontSize: 22, fontWeight: FontWeight.w500),
       bodyMedium: GoogleFonts.openSans(fontSize: 14),
       labelLarge: GoogleFonts.roboto(fontSize: 14, fontWeight: FontWeight.w500),
     );
 
-    // --- Definición del Tema Claro ---
     final lightTheme = ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: primarySeedColor,
-        brightness: Brightness.light,
-      ),
+      colorScheme: ColorScheme.fromSeed(seedColor: primarySeedColor, brightness: Brightness.light),
       textTheme: appTextTheme,
       appBarTheme: AppBarTheme(
         backgroundColor: primarySeedColor,
         foregroundColor: Colors.white,
-        titleTextStyle: GoogleFonts.montserrat(
-          fontSize: 22,
-          fontWeight: FontWeight.bold,
-        ),
+        titleTextStyle: GoogleFonts.montserrat(fontSize: 22, fontWeight: FontWeight.bold),
       ),
       inputDecorationTheme: const InputDecorationTheme(
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(8)),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -283,16 +242,12 @@ class MyApp extends StatelessWidget {
           backgroundColor: primarySeedColor,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          textStyle: GoogleFonts.roboto(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
+          textStyle: GoogleFonts.roboto(fontSize: 16, fontWeight: FontWeight.w500),
         ),
       ),
     );
 
-    // --- Definición del Tema Oscuro ---
-    final darkColorScheme = ColorScheme.fromSeed(
+     final darkColorScheme = ColorScheme.fromSeed(
       seedColor: primarySeedColor,
       brightness: Brightness.dark,
       background: const Color(0xFF121212),
@@ -329,9 +284,7 @@ class MyApp extends StatelessWidget {
         tileColor: const Color(0xFF2A2A2A),
       ),
       inputDecorationTheme: const InputDecorationTheme(
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(8)),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
         filled: true,
         fillColor: Colors.black26,
       ),
@@ -341,16 +294,11 @@ class MyApp extends StatelessWidget {
           backgroundColor: darkColorScheme.primary,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          textStyle: GoogleFonts.roboto(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
+          textStyle: GoogleFonts.roboto(fontSize: 16, fontWeight: FontWeight.w500),
         ),
       ),
     );
 
-    // Utiliza un Consumer para escuchar cambios en el ThemeProvider y reconstruir
-    // el MaterialApp cuando el tema cambia.
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
         return MaterialApp.router(

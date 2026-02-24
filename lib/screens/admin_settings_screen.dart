@@ -24,6 +24,15 @@ class AdminSettingsScreen extends StatelessWidget {
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(height: 30),
+           _buildSettingsCard(
+            context,
+            icon: Icons.campaign_outlined, 
+            title: 'Publicar Resultados de Convocatorias',
+            subtitle: 'Hacer visible la lista de aceptados para la cafetería.',
+            onTap: () =>
+                context.go('/admin-dashboard/settings/publish-results'),
+          ),
+          const SizedBox(height: 16),
           _buildSettingsCard(
             context,
             icon: Icons.edit_calendar_outlined,
@@ -54,6 +63,14 @@ class AdminSettingsScreen extends StatelessWidget {
                 'Cancelar la beca de un estudiante y registrar el motivo.',
             onTap: () =>
                 context.go('/admin-dashboard/settings/cancel-scholarship'),
+          ),
+           const SizedBox(height: 16),
+          _buildSettingsCard(
+            context,
+            icon: Icons.edit_note, // Icono para editar contenido
+            title: 'Editar Contenido Informativo',
+            subtitle: 'Modificar textos como Derechos y Obligaciones.',
+            onTap: () => context.go('/admin-dashboard/settings/edit-content'), // RUTA CORREGIDA
           ),
         ],
       ),

@@ -26,8 +26,9 @@ class _ScholarshipApplicationScreenState
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       setState(() {
+        // CORRECCIÓN: Apunta a la colección 'calls' para verificar si el usuario ya aplicó.
         _applicationStream = FirebaseFirestore.instance
-            .collection('scholarship_calls')
+            .collection('calls') 
             .doc(widget.callId)
             .collection('applicants')
             .doc(user.uid)
@@ -254,9 +255,7 @@ class _ApplicationFormViewState extends State<_ApplicationFormView> {
     final user = FirebaseAuth.instance.currentUser!;
     try {
       final dataToSave = {
-        // <<< INICIO DE LA CORRECCIÓN >>>
-        'userId': user.uid, // Corregido: de 'studentID' a 'userId'
-        // <<< FIN DE LA CORRECCIÓN >>>
+        'userId': user.uid,
         'studentName': widget.userData['name'] ?? 'N/A',
         'lastName': widget.userData['lastName'] ?? '',
         'career': widget.userData['career'] ?? 'N/A',
@@ -271,8 +270,9 @@ class _ApplicationFormViewState extends State<_ApplicationFormView> {
         'callId': widget.callId,
       };
 
+      // CORRECCIÓN: Se guarda la solicitud en la colección 'calls'.
       await FirebaseFirestore.instance
-          .collection('scholarship_calls')
+          .collection('calls')
           .doc(widget.callId)
           .collection('applicants')
           .doc(user.uid)
