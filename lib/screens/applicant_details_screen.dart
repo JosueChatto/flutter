@@ -48,7 +48,7 @@ class _ApplicantDetailsScreenState extends State<ApplicantDetailsScreen> {
       final Map<String, dynamic> dataToUpdate = {'status': newStatus};
       if (assignedCafeteria != null && assignedCafeteriaId != null) {
         dataToUpdate['assignedCafeteria'] = assignedCafeteria;
-        dataToUpdate['assignedCafeteriaId'] = assignedCafeteriaId; // Guardado correcto del ID
+        dataToUpdate['assignedCafeteriaId'] = assignedCafeteriaId;
       }
 
       await FirebaseFirestore.instance
@@ -58,52 +58,75 @@ class _ApplicantDetailsScreenState extends State<ApplicantDetailsScreen> {
           .doc(widget.applicantId)
           .update(dataToUpdate);
 
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Solicitud ${newStatus == 'approved' ? 'aprobada' : 'rechazada'}.')),
       );
 
-      if (mounted) {
-        context.go('/admin-dashboard/scholarship-applicants/${widget.callId}');
-      }
+      context.go('/admin-dashboard/scholarship-applicants/${widget.callId}');
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al actualizar la solicitud: $e')),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al actualizar la solicitud: $e')),
+      );
     }
   }
 
   Future<void> _showAssignCafeteriaDialog() async {
-    final cafeteriasSnapshot = await FirebaseFirestore.instance.collection('users').where('role', isEqualTo: 'cafeteria').get();
-    final cafeterias = cafeteriasSnapshot.docs.map((doc) => {
-      'id': doc.id,
-      'name': doc.data()['nameCafeteria'] as String? ?? 'Sin Nombre'
+    // Correctly query for users with rol: 'cafeteria'
+    final cafeteriasSnapshot = await FirebaseFirestore.instance.collection('users').where('rol', isEqualTo: 'cafeteria').get();
+    final cafeterias = cafeteriasSnapshot.docs.map((doc) {
+      return {
+        'id': doc.id,
+        'name': doc.data()['nameCafeteria'] as String? ?? 'Sin Nombre Asignado'
+      };
     }).toList();
 
+    final formKey = GlobalKey<FormState>();
     Map<String, String>? selectedCafeteria;
+
+    if (!mounted) return;
 
     return showDialog<void>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Asignar Cafetería'),
-          content: DropdownButtonFormField<Map<String, String>>(
-            decoration: const InputDecoration(labelText: 'Seleccione una cafetería'),
-            items: cafeterias.map((cafeteria) {
-              return DropdownMenuItem<Map<String, String>>(value: {'id': cafeteria['id']!, 'name': cafeteria['name']!}, child: Text(cafeteria['name']!));
-            }).toList(),
-            onChanged: (newValue) => selectedCafeteria = newValue,
-            validator: (value) => value == null ? 'Campo requerido' : null,
+          content: Form(
+            key: formKey,
+            child: DropdownButtonFormField<Map<String, String>>(
+              decoration: const InputDecoration(
+                labelText: 'Seleccione una cafetería',
+                border: OutlineInputBorder(),
+              ),
+              hint: const Text('Seleccione...'),
+              items: cafeterias.map((cafeteria) {
+                return DropdownMenuItem<Map<String, String>>(
+                  value: {'id': cafeteria['id']!, 'name': cafeteria['name']!},
+                  child: Text(cafeteria['name']!),
+                );
+              }).toList(),
+              onChanged: (newValue) {
+                selectedCafeteria = newValue;
+              },
+              validator: (value) => value == null ? 'Por favor, seleccione una cafetería.' : null,
+            ),
           ),
           actions: <Widget>[
-            TextButton(child: const Text('Cancelar'), onPressed: () => Navigator.of(context).pop()),
+            TextButton(
+              child: const Text('Cancelar'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
             ElevatedButton(
               child: const Text('Confirmar'),
               onPressed: () {
-                if (selectedCafeteria != null) {
+                if (formKey.currentState!.validate()) {
                   Navigator.of(context).pop();
-                  _updateApplicationStatus('approved', assignedCafeteria: selectedCafeteria!['name'], assignedCafeteriaId: selectedCafeteria!['id']);
+                  _updateApplicationStatus(
+                    'approved',
+                    assignedCafeteria: selectedCafeteria!['name'],
+                    assignedCafeteriaId: selectedCafeteria!['id'],
+                  );
                 }
               },
             ),
